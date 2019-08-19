@@ -11,7 +11,7 @@
 
       <div class="layui-footer">
         <!-- 底部固定区域 -->
-        © 中融电（北京）科技有限公司
+        © wh
       </div>
     </div>
   </div>
