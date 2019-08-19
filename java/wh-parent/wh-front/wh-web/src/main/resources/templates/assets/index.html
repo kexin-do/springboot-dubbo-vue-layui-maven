@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../static/css/font-awesome/css/font-awesome.css"/>
+    <link rel="stylesheet" href="../../static/js/layui/css/layui.css"/>
+
+    <script src="../../static/js/jquery/jquery-3.4.1.min.js"></script>
+    <script src="../../static/js/layui/layui.js"></script>
+    <script src="../../static/js/vue/vue.js"></script>
+    <script src="../../static/plugins/vue-router/vue-router.js"></script>
+    <script src="../../static/plugins/axios/axios.min.js"></script>
+
+    <title>系统首页</title>
+</head>
+<body  class="layui-layout-body">
+    <div class="layui-layout layui-layout-admin" id="app">
+        <div class="layui-header">
+            <div class="layui-logo">外汇后台管理系统</div>
+            <!-- 头部区域（可配合layui已有的水平导航） -->
+            <ul class="layui-nav layui-layout-left" id="top_menu">
+            </ul>
+            <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item">
+                    <a href="javascript:;">
+                        <img src="" class="layui-nav-img">
+                        用户
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="">基本信息</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item"><a href="">退出</a></li>
+            </ul>
+        </div>
+
+        <div class="layui-side layui-bg-black">
+            <div class="layui-side-scroll"  id="sub_menu"></div>
+        </div>
+
+        <div class="layui-body">
+            <div style="padding: 15px;">
+                <router-view></router-view>
+            </div>
+        </div>
+
+        <div class="layui-footer">
+            <!-- 底部固定区域 -->
+            © 中融电（北京）科技有限公司
+        </div>
+    </div>
+
+    <script src="../../static/assets/common/menu.js"></script>
+    <script src="../../static/assets/common/index.js"></script>
+    <script src="../../static/assets/app.js"></script>
+</body>
+</html>

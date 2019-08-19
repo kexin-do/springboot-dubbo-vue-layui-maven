@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zrd.zx.auth.mapper.IRoleMapper">
+	<resultMap id="RoleResultMap" type="com.zrd.zx.core.entity.auth.Role">
+		<id column="ROLEID" property="roleId" jdbcType="VARCHAR" />
+		<result column="ROLENAME" property="roleName" jdbcType="VARCHAR"/>
+		<result column="ROLEDESC" property="roleDesc" jdbcType="VARCHAR" />
+		<result column="ROLESTS" property="roleSts" jdbcType="VARCHAR" />
+		<result column="LSTTIME" property="lstTime" jdbcType="TIMESTAMP" />
+		<result column="LSTUSER" property="lstUser" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="RoleAndUserResultMap" type="com.zrd.zx.core.entity.auth.RoleAndUser">
+		<id column="ROLEID" property="roleId" jdbcType="VARCHAR" />
+		<id column="USERID" property="userId" jdbcType="VARCHAR" /> 
+	</resultMap>
+	
+	<resultMap id="RoleAndResourceResultMap" type="com.zrd.zx.core.entity.auth.RoleAndResource">
+		<id column="RESID" property="resId" jdbcType="VARCHAR" />
+		<id column="ROLEID" property="roleId" jdbcType="VARCHAR" /> 
+		<result column="PTYPE" property="pType" jdbcType="CHAR" /> 
+	</resultMap>
+	<sql id="Role_Column_List">
+		ROLEID,ROLENAME,ROLEDESC,ROLESTS,LSTTIME,LSTUSER 
+	</sql>
+	
+	<!-- 查询一条角色信息 -->
+	<select id="selectOneRole" resultMap="RoleResultMap"
+		parameterType="java.lang.String">
+		SELECT 
+		<include refid="Role_Column_List" />
+		FROM RBAC_ROLE 
+		WHERE ROLEID=#{roleId}
+	</select>
+	
+	<!-- 查询所有角色信息 -->
+	<select id="selectRole" parameterType="java.util.Map" resultMap="RoleResultMap">
+		SELECT 
+		<include refid="Role_Column_List" />
+		FROM RBAC_ROLE WHERE 1=1 
+		<if test="roleId != null">
+			AND ROLEID=#{roleId}
+		</if>
+		<if test="roleName != null">
+			AND ROLENAME LIKE '%'||#{roleName}||'%' 
+		</if>
+		<if test="roleSts != null">
+			AND ROLESTS=#{roleSts}
+		</if>
+		ORDER BY LSTTIME DESC
+	</select>
+	
+	<!-- 分页查询角色 -->
+	<select id="selectRoleByPage" parameterType="java.util.Map" resultMap="RoleResultMap">
+		SELECT 
+		<include refid="Role_Column_List" />
+		FROM RBAC_ROLE WHERE  
+		(	
+			ORGID=#{orgId}
+			<if test="roleId != null">
+				AND ROLEID=#{roleId}
+			</if>
+			<if test="roleName != null">
+				AND ROLENAME LIKE '%'||#{roleName}||'%' 
+			</if>
+			<if test="roleSts != null">
+				AND ROLESTS=#{roleSts}
+			</if>
+		) 
+		OR
+		(
+			ROLEID = 'synchronousCompositeRole'
+			<if test="roleId != null">
+				AND ROLEID=#{roleId}
+			</if>
+			<if test="roleName != null">
+				AND ROLENAME LIKE '%'||#{roleName}||'%' 
+			</if>
+			<if test="roleSts != null">
+				AND ROLESTS=#{roleSts}
+			</if>
+		)
+	</select>
+ 
+	<!-- 新增角色信息 -->
+	<insert id="insert" parameterType="com.zrd.zx.core.entity.auth.Role">
+		INSERT INTO RBAC_ROLE (ROLEID,ROLENAME,ROLEDESC,ROLESTS,LSTTIME,LSTUSER,ORGID)
+		VALUES (#{roleId,jdbcType=VARCHAR},#{roleName,jdbcType=VARCHAR},#{roleDesc,jdbcType=VARCHAR},'1',SYSDATE,
+		#{lstUser,jdbcType=VARCHAR},#{orgId, jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 修改角色信息 -->
+	<update id="updateRole" parameterType="com.zrd.zx.core.entity.auth.Role">
+		UPDATE RBAC_ROLE 
+		<set>
+	      <if test="roleName != null">
+	      	 ROLENAME = #{roleName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="roleDesc != null">
+	      	 ROLEDESC = #{roleDesc,jdbcType=VARCHAR},
+	      </if>
+	      <if test="roleSts != null">
+	      	 ROLESTS = #{roleSts,jdbcType=VARCHAR},
+	      </if>
+	      <if test="lstUser != null">
+	      	 LSTUSER = #{lstUser,jdbcType=VARCHAR},
+	      </if>
+			 LSTTIME = SYSDATE,
+		</set>
+		WHERE ROLEID=#{roleId,jdbcType=VARCHAR}
+	</update>
+	
+	<insert id="addResource" parameterType="java.util.List">
+		INSERT INTO RBAC_ROLE_RESOURCE(RESID, ROLEID)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.resId, jdbcType=VARCHAR}, #{item.roleId, jdbcType=VARCHAR})
+		</foreach>
+	</insert>
+	
+	<!-- 删除角色所拥有的所有系统资源 -->
+	<delete id="delAllResource" parameterType="java.lang.String">
+		DELETE FROM RBAC_ROLE_RESOURCE WHERE ROLEID=#{roleId}
+	</delete>
+	
+	<!-- 删除角色所拥有的所有用户 -->
+	<delete id="delAllUsers" parameterType="java.lang.String">
+		DELETE FROM RBAC_ROLE_USER WHERE ROLEID=#{roleId}
+	</delete>
+	
+	<delete id="deleteRole" parameterType="java.lang.String">
+		DELETE FROM RBAC_ROLE WHERE ROLEID=#{roleId}
+	</delete>
+	
+	<!-- 根据用户id查询角色是否关联 -->
+	<select id="selectRoleAndUser" resultMap="RoleAndUserResultMap"
+		parameterType="java.lang.String">
+		SELECT ROLEID,USERID
+		FROM RBAC_ROLE_USER 
+		WHERE USERID=#{userId}
+	</select>
+	
+	<select id="checkUserResource" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT DISTINCT
+			count(res_inf.RESURL)
+		FROM
+			RBAC_ROLE role
+			LEFT JOIN RBAC_ROLE_USER role_usr ON role_usr.ROLEID = role.ROLEID
+			LEFT JOIN ( SELECT res.RESURL,role_res.ROLEID FROM RBAC_RESOURCE res LEFT JOIN RBAC_ROLE_RESOURCE role_res ON res.RESID = role_res.RESID ) res_inf ON res_inf.ROLEID =role.ROLEID
+		WHERE
+			role_usr.USERID = #{userId, jdbcType=VARCHAR}
+			AND res_inf.RESURL LIKE #{resUrl, jdbcType=VARCHAR} || '%'
+	</select>
+	
+	<!-- 增加角色和用户关联关系 -->
+	<insert id="insertRoleAndUser" parameterType="com.zrd.zx.core.entity.auth.RoleAndUser">
+		INSERT INTO RBAC_ROLE_USER  (ROLEID,USERID)
+		VALUES (#{roleId,jdbcType=VARCHAR},#{userId,jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 删除角色和用户关联关系 -->
+	<insert id="deleteRoleAndUser" parameterType="com.zrd.zx.core.entity.auth.RoleAndUser">
+		DELETE FROM RBAC_ROLE_USER WHERE ROLEID= #{roleId,jdbcType=VARCHAR} AND USERID = #{userId,jdbcType=VARCHAR}
+	</insert>
+	
+	<!-- 根据角色id查询角色资源是否关联 -->
+	<select id="selectRoleAndResource" resultMap="RoleAndResourceResultMap"
+		parameterType="java.lang.String">
+		SELECT RESID,ROLEID,PTYPE 
+		FROM RBAC_ROLE_RESOURCE 
+		WHERE ROLEID=#{roleId}
+	</select>
+	
+	<!-- 增加角色和资源关联关系 -->
+	<insert id="insertRoleAndResource" parameterType="com.zrd.zx.core.entity.auth.RoleAndResource">
+		INSERT INTO RBAC_ROLE_RESOURCE  (RESID,ROLEID,PTYPE) 
+		VALUES (#{resId,jdbcType=VARCHAR},#{roleId,jdbcType=VARCHAR},#{pType,jdbcType=CHAR})
+	</insert>
+	
+	<!-- 删除角色和资源关联关系 -->
+	<insert id="deleteRoleAndResource" parameterType="com.zrd.zx.core.entity.auth.RoleAndResource">
+		DELETE FROM RBAC_ROLE_RESOURCE WHERE RESID= #{resId,jdbcType=VARCHAR} AND ROLEID = #{roleId,jdbcType=VARCHAR}
+	</insert>
+	
+	<!-- 根据用户id查询对应角色列表 -->
+	<select id="selectRoleByUserId" parameterType="java.util.Map" resultMap="RoleResultMap">
+		SELECT ROLENAME,ROLEDESC  
+		FROM RBAC_ROLE A , 
+		RBAC_ROLE_USER B, 
+		RBAC_USER C 
+		WHERE A.ROLEID=B.ROLEID AND B.USERID=C.USERID AND C.USERID=#{userId,jdbcType=VARCHAR}
+	</select>
+</mapper>

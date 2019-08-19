@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zrd.wh.front.auth.mapper.IResourceMapper">
+	<resultMap id="ResourceResultMap" type="com.zrd.wh.core.front.entity.auth.Resource">
+		<id column="RESID" property="resId" jdbcType="VARCHAR" />
+		<result column="RESNO" property="resNo" jdbcType="VARCHAR"/>
+		<result column="RESNAME" property="resName" jdbcType="VARCHAR" />
+		<result column="PRESID" property="pResId" jdbcType="VARCHAR" />
+		<result column="RESURL" property="resUrl" jdbcType="VARCHAR" />
+		<result column="RESLEAF" property="resLeaf" jdbcType="VARCHAR" />
+		<result column="RESORDER" property="resOrder" jdbcType="INTEGER" />
+		<result column="RESSTS" property="resSts" jdbcType="VARCHAR" />
+		<result column="LSTTIME" property="lstTime" jdbcType="TIMESTAMP" />
+		<result column="LSTUSER" property="lstUser" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Resource_Column_List">
+		RESID,RESNO,RESNAME,PRESID,RESURL,RESLEAF,RESORDER,RESSTS,LSTTIME,LSTUSER 
+	</sql>
+	
+	<!-- 查询一条资源记录 -->
+	<select id="selectOneResource" resultMap="ResourceResultMap"
+		parameterType="java.lang.String">
+		SELECT 
+		<include refid="Resource_Column_List" />
+		FROM RBAC_RESOURCE 
+		WHERE RESID=#{resId}
+	</select>
+	
+	<!-- 查询所有资源记录 -->
+	<select id="selectAllResource" resultMap="ResourceResultMap">
+		SELECT 
+		<include refid="Resource_Column_List" />
+		FROM RBAC_RESOURCE where RESSTS='1' order by RESORDER
+	</select>
+	
+	
+	<!-- 查询资源记录 - 分页 -->
+	<select id="selectPageResource" parameterType="java.util.Map" resultMap="ResourceResultMap">
+		SELECT 
+		<include refid="Resource_Column_List" />
+		FROM RBAC_RESOURCE WHERE 1=1 
+		<if test="resId != null">
+			AND PRESID = #{resId}
+		</if>
+	</select>
+ 	
+	<!-- 新增资源信息 -->
+	<insert id="insert" parameterType="com.zrd.wh.core.front.entity.auth.Resource">
+		INSERT INTO RBAC_RESOURCE (RESID,RESNO,RESNAME,PRESID,RESURL,RESLEAF,RESORDER,RESSTS,LSTTIME,LSTUSER)
+		VALUES (#{resId,jdbcType=VARCHAR},#{resNo,jdbcType=VARCHAR},#{resName,jdbcType=VARCHAR},#{pResId,jdbcType=VARCHAR},
+		#{resUrl,jdbcType=VARCHAR},#{resLeaf,jdbcType=VARCHAR},#{resOrder,jdbcType=INTEGER},'1',
+		NOW(),#{lstUser,jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 修改资源信息 -->
+	<update id="updateResource" parameterType="com.zrd.wh.core.front.entity.auth.Resource">
+		UPDATE RBAC_RESOURCE 
+		<set>
+	      <if test="resNo != null">
+	      	 RESNO = #{resNo,jdbcType=VARCHAR},
+	      </if>
+	      <if test="resName != null">
+	      	 RESNAME = #{resName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="pResId != null">
+	      	 PRESID = #{pResId,jdbcType=VARCHAR},
+	      </if>
+	      <if test="resUrl != null">
+	      	 RESURL = #{resUrl,jdbcType=VARCHAR},
+	      </if>
+	      <if test="resLeaf != null">
+	      	 RESLEAF = #{resLeaf,jdbcType=VARCHAR},
+	      </if>
+	      
+	      	 RESORDER = #{resOrder,jdbcType=INTEGER},
+	       
+	      <if test="resSts != null">
+	      	 RESSTS = #{resSts,jdbcType=VARCHAR},
+	      </if>
+	      <if test="lstUser != null">
+	      	 LSTUSER = #{lstUser,jdbcType=VARCHAR}, 
+	      </if>
+	      
+			 LSTTIME = NOW(),
+		</set>
+		WHERE RESID=#{resId,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 根据上级菜单ID查询所有资源记录 -->
+	<select id="selectAllResourceBypResId" resultMap="ResourceResultMap" parameterType="java.lang.String">
+		SELECT 
+		<include refid="Resource_Column_List" />
+		FROM RBAC_RESOURCE
+		WHERE PRESID=#{pResId} AND RESSTS='1' order by RESORDER
+	</select>
+	
+	<!-- 删除拥有该系统资源的所有角色 -->
+	<delete id="delAllResourceRoles" parameterType="java.lang.String">
+		DELETE FROM RBAC_ROLE_RESOURCE WHERE RESID=#{resId}
+	</delete>
+	
+	<select id="getResourcesTree" resultType="com.zrd.wh.core.front.entity.auth.ZTree">
+		SELECT RESID AS id, PRESID as pid, RESNAME name, 1 AS open FROM RBAC_RESOURCE 
+		<where>
+			<if test="resSts != null">
+				RESSTS = '1'
+			</if>
+		</where>
+		ORDER BY RESNO
+	</select>
+	
+	
+	<!-- 查询资源记录 - 分页 -->
+	<select id="selectAllResourceByUserIdAndpResId" parameterType="java.util.Map" resultMap="ResourceResultMap">
+		SELECT 
+		<include refid="Resource_Column_List" /> 
+			FROM RBAC_RESOURCE WHERE 1=1 
+		<if test="userId != null">
+			AND RESID IN (
+				SELECT DISTINCT RESID
+				FROM RBAC_ROLE_USER A, RBAC_ROLE_RESOURCE B
+				WHERE A.ROLEID = B.ROLEID
+					AND USERID = #{userId}
+				)
+			
+		</if>
+		<if test="pResId != null">
+			AND PRESID=#{pResId} 
+		</if> 
+		AND RESSTS='1' order by RESORDER
+		
+	</select>
+</mapper>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zrd.zx.auth.mapper.IOrgInfoMapper">
+	<resultMap id="OrgInfoResultMap" type="com.zrd.zx.core.entity.auth.OrgInfo">
+		<id column="ORGID" property="orgId" jdbcType="VARCHAR" />
+		<result column="ORGCODE" property="orgCode" jdbcType="VARCHAR"/>
+		<result column="ORGNAME" property="orgName" jdbcType="VARCHAR" />
+		<result column="ORGFNAME" property="orgFName" jdbcType="VARCHAR" />
+		<result column="ORGENAME" property="orgEName" jdbcType="VARCHAR" />
+		<result column="PORGID" property="pOrgId" jdbcType="VARCHAR" />
+		<result column="SORGID" property="sOrgId" jdbcType="VARCHAR" />
+		<result column="ORGADDRESS" property="orgAddress" jdbcType="VARCHAR" />
+		<result column="AREACODE" property="areaCode" jdbcType="VARCHAR" />
+		<result column="ORGSTS" property="orgSts" jdbcType="CHAR" />
+		<result column="LSTTIME" property="lstTime" jdbcType="TIMESTAMP" />
+		<result column="LSTUSER" property="lstUser" jdbcType="VARCHAR" />
+		<result column="REPORTSAVERULE" property="reportSaveRule" jdbcType="VARCHAR" />
+		<result column="REPORTPRINTRULE" property="reportPrintRule" jdbcType="VARCHAR" />
+		<result column="TIMELIMIT" property="timeLimit" jdbcType="VARCHAR" />
+		<result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+		<result column="ZIP" property="zip" jdbcType="VARCHAR" />
+		<result column="LINKMAN" property="linkMan" jdbcType="VARCHAR" />
+		<result column="LINKMODE" property="linkMode" jdbcType="VARCHAR" />
+		<result column="OTHERLINKMODE" property="otherLinkMode" jdbcType="VARCHAR" />
+		<result column="PORGNAME" property="pOrgName" jdbcType="VARCHAR" />
+		<result column="CREATETIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CREATEUSER" property="createUser" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="OrgInfo_Column_List">
+		ORGID,ORGCODE,ORGNAME,ORGFNAME,ORGENAME,PORGID,SORGID,ORGADDRESS,AREACODE,ORGSTS,LSTTIME,LSTUSER,
+		 REPORTSAVERULE,REPORTPRINTRULE,TIMELIMIT,ADDRESS,ZIP,LINKMAN,LINKMODE,OTHERLINKMODE,CREATETIME,CREATEUSER
+	</sql>
+	
+	<!-- 通过条件查询机构记录 -->
+	<select id="selectOrgInfoByMap" parameterType="java.util.Map" resultMap="OrgInfoResultMap">
+		SELECT  
+		B.ORGNAME AS PORGNAME,A.ORGID,A.ORGCODE,A.ORGNAME,A.ORGFNAME,A.ORGENAME,A.PORGID,A.SORGID,A.ORGADDRESS,A.AREACODE,A.ORGSTS,A.LSTTIME,A.LSTUSER,
+		 A.REPORTSAVERULE,A.REPORTPRINTRULE,A.TIMELIMIT,A.ADDRESS,A.ZIP,A.LINKMAN,A.LINKMODE,A.OTHERLINKMODE,A.CREATETIME,A.CREATEUSER
+		FROM RBAC_ORG A left join RBAC_ORG B on A.PORGID=B.ORGID WHERE 1=1  
+		<if test="orgId != null">
+			AND A.ORGID = #{orgId} 
+		</if>
+		<if test="orgCode != null">
+			AND A.ORGCODE = #{orgCode} 
+		</if>
+		<if test="orgName != null">
+			AND A.ORGNAME LIKE '%${orgName}%' 
+		</if>
+		<if test="sOrgId != null">
+			AND A.SORGID LIKE '%${sOrgId}%' 
+		</if>  
+		<if test="orgSts != null">
+			AND A.ORGSTS = #{orgSts} 
+		</if>
+	</select>
+	
+	<!-- 查询一条机构记录 -->
+	<select id="selectOneOrgInfo" resultMap="OrgInfoResultMap"
+		parameterType="java.lang.String">
+		SELECT  
+		B.ORGNAME AS PORGNAME,A.ORGID,A.ORGCODE,A.ORGNAME,A.ORGFNAME,A.ORGENAME,A.PORGID,A.SORGID,A.ORGADDRESS,A.AREACODE,A.ORGSTS,A.LSTTIME,A.LSTUSER,
+		 A.REPORTSAVERULE,A.REPORTPRINTRULE,A.TIMELIMIT,A.ADDRESS,A.ZIP,A.LINKMAN,A.LINKMODE,A.OTHERLINKMODE,A.CREATETIME,A.CREATEUSER
+		FROM RBAC_ORG A left join RBAC_ORG B on A.PORGID=B.ORGID WHERE  A.ORGID = #{orgId} 
+	</select>
+	
+	<!-- 查询子机构记录 -->
+	<select id="selectSubOrgInfo" resultMap="OrgInfoResultMap"
+		parameterType="java.lang.String">
+		SELECT 
+		<include refid="OrgInfo_Column_List" />
+		FROM RBAC_ORG 
+		WHERE PORGID=#{orgId}
+	</select>
+	
+	<!-- 分页查询所有下级机构记录 -->
+	<select id="selectSubOrgInfoAll" parameterType="java.util.Map" resultMap="OrgInfoResultMap">
+		SELECT  
+		B.ORGNAME AS PORGNAME,A.ORGID,A.ORGCODE,A.ORGNAME,A.ORGFNAME,A.ORGENAME,A.PORGID,A.SORGID,A.ORGADDRESS,A.AREACODE,A.ORGSTS,A.LSTTIME,A.LSTUSER,
+		 A.REPORTSAVERULE,A.REPORTPRINTRULE,A.TIMELIMIT,A.ADDRESS,A.ZIP,A.LINKMAN,A.LINKMODE,A.OTHERLINKMODE,A.CREATETIME,A.CREATEUSER
+		FROM RBAC_ORG A left join RBAC_ORG B on A.PORGID=B.ORGID WHERE  A.PORGID = #{orgId}
+		<if test="orgName != null">
+			AND A.ORGNAME LIKE '%${orgName}%' 
+		</if> 
+		<if test="orgCode != null">
+			AND A.ORGCODE = #{orgCode} 
+		</if>
+		<if test="orgSts != null">
+			AND A.ORGSTS = #{orgSts} 
+		</if>
+	    ORDER BY A.CREATETIME
+	</select>
+	  
+	<!-- 新增机构信息 -->
+	<insert id="insert" parameterType="com.zrd.zx.core.entity.auth.OrgInfo">
+		INSERT INTO RBAC_ORG (ORGID,ORGCODE,ORGNAME,ORGFNAME,ORGENAME,PORGID,SORGID,ORGADDRESS,AREACODE,ORGSTS,LSTTIME,LSTUSER,
+		REPORTSAVERULE,REPORTPRINTRULE,TIMELIMIT,ADDRESS,ZIP,LINKMAN,LINKMODE,OTHERLINKMODE,CREATEUSER, CREATETIME)
+		VALUES (#{orgId,jdbcType=VARCHAR},#{orgCode,jdbcType=VARCHAR},#{orgName,jdbcType=VARCHAR},#{orgFName,jdbcType=VARCHAR},#{orgEName,jdbcType=VARCHAR},
+		#{pOrgId,jdbcType=VARCHAR},#{sOrgId,jdbcType=VARCHAR},#{orgAddress,jdbcType=VARCHAR},#{areaCode,jdbcType=VARCHAR},'1',NOW(),
+		#{lstUser,jdbcType=VARCHAR},#{reportSaveRule,jdbcType=VARCHAR},#{reportPrintRule,jdbcType=VARCHAR},
+		#{timeLimit,jdbcType=VARCHAR},#{address,jdbcType=VARCHAR},#{zip,jdbcType=VARCHAR},#{linkMan,jdbcType=VARCHAR},
+		#{linkMode,jdbcType=VARCHAR},#{otherLinkMode,jdbcType=VARCHAR},#{createUser,jdbcType=VARCHAR},NOW())
+	</insert>
+	
+	<!-- 修改机构信息 -->
+	<update id="updateOrgInfo" parameterType="com.zrd.zx.core.entity.auth.OrgInfo">
+		UPDATE RBAC_ORG 
+		<set>
+	      <if test="orgCode != null">
+	      	 ORGCODE = #{orgCode,jdbcType=VARCHAR},
+	      </if>
+	      <if test="orgName != null">
+	      	 ORGNAME = #{orgName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="orgFName != null">
+	      	 ORGFNAME = #{orgFName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="orgEName != null">
+	      	 ORGENAME = #{orgEName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="pOrgId != null">
+	      	 PORGID = #{pOrgId,jdbcType=VARCHAR},
+	      </if>
+	      <if test="sOrgId != null">
+	      	 SORGID = #{sOrgId,jdbcType=VARCHAR},
+	      </if>
+	      <if test="orgAddress != null">
+	      	 ORGADDRESS = #{orgAddress,jdbcType=VARCHAR},
+	      </if>
+	      <if test="areaCode != null">
+	      	 AREACODE = #{areaCode,jdbcType=VARCHAR},
+	      </if>
+	      <if test="orgSts != null">
+	      	 ORGSTS = #{orgSts,jdbcType=VARCHAR},
+	      </if>
+	      <if test="lstUser != null">
+	      	 LSTUSER = #{lstUser,jdbcType=VARCHAR},
+	      </if>
+	      <if test="reportSaveRule != null">
+	      	 REPORTSAVERULE = #{reportSaveRule,jdbcType=VARCHAR},
+	      </if>
+	      <if test="reportPrintRule != null">
+	      	 REPORTPRINTRULE = #{reportPrintRule,jdbcType=VARCHAR},
+	      </if>
+	      <if test="timeLimit != null">
+	      	 TIMELIMIT = #{timeLimit,jdbcType=VARCHAR},
+	      </if>
+	      <if test="address != null">
+	      	 ADDRESS = #{address,jdbcType=VARCHAR},
+	      </if>
+	      <if test="zip != null">
+	      	 ZIP = #{zip,jdbcType=VARCHAR},
+	      </if>
+	      <if test="linkMan != null">
+	      	 LINKMAN = #{linkMan,jdbcType=VARCHAR},
+	      </if>
+	      <if test="linkMode != null">
+	      	 LINKMODE = #{linkMode,jdbcType=VARCHAR},
+	      </if>
+	      <if test="otherLinkMode != null">
+	      	 OTHERLINKMODE = #{otherLinkMode,jdbcType=VARCHAR},
+	      </if>
+	      	 LSTTIME = NOW(),
+	      </set>
+		WHERE ORGID=#{orgId,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 删除用户表中机构为该机构的记录 -->
+	<update id="updateUserOrg" parameterType="java.lang.String">
+		update RBAC_USER set ORGID =null where ORGID=#{orgId}
+	</update>
+	
+</mapper>

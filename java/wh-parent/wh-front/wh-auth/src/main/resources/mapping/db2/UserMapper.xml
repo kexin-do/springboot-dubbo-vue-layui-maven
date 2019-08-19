@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zrd.zx.auth.mapper.IUserMapper">
+	<resultMap id="UserResultMap" type="com.zrd.zx.core.entity.auth.User">
+		<id column="USERID" property="userId" jdbcType="VARCHAR" />
+		<result column="USERNO" property="userNo" jdbcType="VARCHAR"/>
+		<result column="USERNAME" property="userName" jdbcType="VARCHAR" />
+		<result column="USERPWD" property="userPwd" jdbcType="VARCHAR" />
+		<result column="USERPWDDAY" property="userPwdDay" jdbcType="DATE" />
+		<result column="PWDINVALID" property="pwdInvalid" jdbcType="CHAR" />
+		<result column="PMD5" property="pmd5" jdbcType="VARCHAR" />
+		<result column="USERSTS" property="userSts" jdbcType="CHAR" />
+		<result column="LSTTIME" property="lstTime" jdbcType="TIMESTAMP" />
+		<result column="LSTUSER" property="lstUser" jdbcType="VARCHAR" />
+		<result column="ORGID" property="orgId" jdbcType="VARCHAR" />
+		<result column="ORGNAME" property="orgName" jdbcType="VARCHAR" />
+		<result column="DEPTNAME" property="deptName" jdbcType="VARCHAR" />
+		<result column="REPORTSAVERULE" property="reportSaveRule" jdbcType="VARCHAR" />
+		<result column="REPORTPRINTRULE" property="reportPrintRule" jdbcType="VARCHAR" />
+		<result column="ISAMOUNTLIMIT" property="isAmountLimit" jdbcType="VARCHAR" />
+		<result column="AMOUNTLIMIT" property="amountLimit" jdbcType="INTEGER" />
+		<result column="ISTIMELIMIT" property="isTimeLimit" jdbcType="VARCHAR" />
+		<result column="TIMELIMIT" property="timeLimit" jdbcType="VARCHAR" />
+		<result column="ISFREQUENCYLIMIT" property="isFrequencyLimit" jdbcType="VARCHAR" />
+		<result column="FREQUENCYLIMIT" property="frequencyLimit" jdbcType="VARCHAR" />
+		<result column="BIND_ADDRESS_NUM" property="bindAddressNum" jdbcType="VARCHAR" />
+		<result column="USERLEVEL" property="userLevel" jdbcType="VARCHAR" />
+		<result column="CREATETIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CREATEUSER" property="createUser" jdbcType="VARCHAR" />
+		<result column="STARTTIME" property="startTime" jdbcType="TIMESTAMP" />
+		<result column="STARTUSER" property="startUser" jdbcType="VARCHAR" />
+		<result column="USERLOCKSTS" property="userLockSts" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="User_Column_List">
+		USERID,USERNO,USERNAME,USERPWD,USERPWDDAY,PWDINVALID,PMD5,USERSTS,LSTTIME,LSTUSER,ORGID,DEPTNAME,REPORTSAVERULE,
+		REPORTPRINTRULE,ISAMOUNTLIMIT,AMOUNTLIMIT,ISTIMELIMIT,TIMELIMIT,ISFREQUENCYLIMIT,FREQUENCYLIMIT,BIND_ADDRESS_NUM,
+		USERLEVEL,CREATEUSER, CREATETIME,STARTUSER,STARTTIME,USERLOCKSTS
+	</sql>
+	
+	<!-- 根据用户主键查询用户的机构号 -->
+	<select id="selectUserOrgCodeByUserId" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT 
+			ORG.ORGCODE orgCode 
+		FROM 
+			RBAC_USER USR, RBAC_ORG ORG
+		WHERE
+			USR.ORGID = ORG.ORGID
+			AND USR.USERID = #{_parameter};
+	</select>
+	<!-- 查询一条用户记录 -->
+	<select id="selectOneUser" resultMap="UserResultMap"
+		parameterType="java.lang.String">
+		SELECT 
+		<include refid="User_Column_List" /> 
+	    FROM RBAC_USER 
+		WHERE USERID=#{userId}
+	</select>
+	
+	<!-- 根据用户代码查询用户 -->
+	<select id="selectLoginUser" resultMap="UserResultMap"
+		parameterType="java.lang.String">
+		SELECT 
+		<include refid="User_Column_List" />
+	    FROM RBAC_USER 
+		WHERE USERNO=#{userNo}
+	</select>
+	
+	<!-- 查询所有用户记录 -->
+	<select id="selectUser" parameterType="java.util.Map" resultMap="UserResultMap">
+		SELECT 
+		<include refid="User_Column_List" />
+		FROM RBAC_USER WHERE 1=1 
+		<if test="userNo != null">
+			AND USERNO = #{userNo} 
+		</if>
+		<if test="userName != null">
+			AND USERNAME LIKE '%${userName}%' 
+		</if>
+		<if test="userSts != null">
+			AND USERSTS=#{userSts}
+		</if>
+	</select>
+	
+	<!-- 通过机构号查询所有普通用户 -->
+	<select id="selectNormalUserByOrgIds" parameterType="java.lang.String" resultMap="UserResultMap">
+		SELECT 
+			<include refid="User_Column_List" />
+		FROM RBAC_USER WHERE 
+			ORGID IN(${_parameter})
+			AND USERLEVEL = 'B'
+	</select>
+ 
+	<!-- 新增用户信息 -->
+	<insert id="insert" parameterType="com.zrd.zx.core.entity.auth.User">
+		INSERT INTO RBAC_USER (USERID,USERNO,USERNAME,USERPWD,USERPWDDAY,PMD5,USERSTS,LSTTIME,LSTUSER,ORGID,
+		DEPTNAME,REPORTSAVERULE,REPORTPRINTRULE,ISAMOUNTLIMIT,AMOUNTLIMIT,ISTIMELIMIT,TIMELIMIT,ISFREQUENCYLIMIT,FREQUENCYLIMIT,
+		BIND_ADDRESS_NUM,USERLEVEL,CREATEUSER, CREATETIME,STARTUSER,STARTTIME,USERLOCKSTS,PWDINVALID)
+		VALUES (#{userId,jdbcType=VARCHAR},#{userNo,jdbcType=VARCHAR},#{userName,jdbcType=VARCHAR},#{userPwd,jdbcType=VARCHAR},
+		#{userPwdDay,jdbcType=DATE},#{pmd5,jdbcType=VARCHAR},'1',NOW(),
+		#{lstUser,jdbcType=VARCHAR},#{orgId,jdbcType=VARCHAR},#{deptName,jdbcType=VARCHAR},#{reportSaveRule,jdbcType=VARCHAR},
+		#{reportPrintRule,jdbcType=VARCHAR},#{isAmountLimit,jdbcType=VARCHAR},#{amountLimit,jdbcType=INTEGER},#{isTimeLimit,jdbcType=VARCHAR},
+		#{timeLimit,jdbcType=VARCHAR},#{isFrequencyLimit,jdbcType=VARCHAR},#{frequencyLimit,jdbcType=VARCHAR},#{bindAddressNum,jdbcType=VARCHAR},
+		#{userLevel,jdbcType=VARCHAR},#{createUser,jdbcType=VARCHAR},NOW(),#{startUser,jdbcType=VARCHAR},NOW(),
+		'0','0')
+	</insert>
+  
+  	<!-- 修改用户信息 -->
+	<update id="updateUser" parameterType="com.zrd.zx.core.entity.auth.User">
+		UPDATE RBAC_USER 
+		<set>
+	      <if test="userNo != null">
+	      	 USERNO = #{userNo,jdbcType=VARCHAR},
+	      </if>
+	      <if test="userName != null">
+	      	 USERNAME = #{userName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="userPwd != null">
+	       	 USERPWD = #{userPwd,jdbcType=VARCHAR},
+	      </if>
+	      <if test="userPwdDay != null">
+	       	 USERPWDDAY = #{userPwdDay,jdbcType=DATE},
+	      </if>
+	      <if test="pwdInvalid != null">
+	       	 PWDINVALID = #{pwdInvalid,jdbcType=CHAR},
+	      </if>
+	      <if test="pmd5 != null">
+	       	 PMD5 = #{pmd5,jdbcType=VARCHAR},
+	      </if>
+	      <if test="userSts != null">
+	       	 USERSTS = #{userSts,jdbcType=CHAR},
+	      </if>
+	      <if test="lstUser != null">
+	       	 LSTUSER = #{lstUser,jdbcType=VARCHAR},
+	      </if>
+	      <if test="orgId != null">
+	       	 ORGID = #{orgId,jdbcType=VARCHAR},
+	      </if>
+	      <if test="deptName != null">
+	       	 DEPTNAME = #{deptName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="reportSaveRule != null">
+	       	 REPORTSAVERULE = #{reportSaveRule,jdbcType=VARCHAR},
+	      </if>
+	      <if test="reportPrintRule != null">
+	       	 REPORTPRINTRULE = #{reportPrintRule,jdbcType=VARCHAR},
+	      </if>
+	      <if test="isAmountLimit != null">
+	       	 ISAMOUNTLIMIT = #{isAmountLimit,jdbcType=VARCHAR},
+	      </if>
+	       <if test="isAmountLimit == 1">
+	       	 AMOUNTLIMIT = null,
+	      </if>
+	      <if test="amountLimit != null">
+	       	 AMOUNTLIMIT = #{amountLimit,jdbcType=INTEGER},
+	      </if>  
+	      
+	      <if test="isTimeLimit != null">
+	       	 ISTIMELIMIT = #{isTimeLimit,jdbcType=VARCHAR},
+	      </if>
+	      <if test="timeLimit != null">
+	       	 TIMELIMIT = #{timeLimit,jdbcType=VARCHAR},
+	      </if>
+	      <if test="isFrequencyLimit != null">
+	       	 ISFREQUENCYLIMIT = #{isFrequencyLimit,jdbcType=VARCHAR},
+	      </if>
+	      <if test="frequencyLimit != null">
+	       	 FREQUENCYLIMIT = #{frequencyLimit,jdbcType=VARCHAR},
+	      </if>
+	      <if test="bindAddressNum != null">
+	       	 BIND_ADDRESS_NUM = #{bindAddressNum,jdbcType=VARCHAR},
+	      </if>
+	      <if test="lstTime != null">
+	       	 LSTTIME = #{lstTime,jdbcType=TIMESTAMP},
+	      </if>
+	      <if test="userLevel != null">
+	       	 USERLEVEL = #{userLevel,jdbcType=VARCHAR},
+	      </if>
+	      <if test="startUser != null">
+	       	 STARTUSER = #{startUser,jdbcType=VARCHAR},
+	      </if>
+	      <if test="startTime != null">
+	       	 STARTTIME = #{startTime,jdbcType=TIMESTAMP},
+	      </if>
+	      <if test="userLockSts != null">
+	       	 USERLOCKSTS = #{userLockSts,jdbcType=VARCHAR},
+	      </if>
+	    </set>
+		WHERE USERID=#{userId,jdbcType=VARCHAR}
+	</update>
+	
+	<insert id="addRoles" parameterType="java.util.List">
+		INSERT INTO RBAC_ROLE_USER(ROLEID, USERID)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.roleId, jdbcType=VARCHAR},#{item.userId, jdbcType=VARCHAR})
+		</foreach>
+	</insert>
+	
+	<delete id="delAllRoles" parameterType="java.lang.String">
+		DELETE FROM RBAC_ROLE_USER WHERE USERID=#{userId}
+	</delete>
+
+	<!-- 联合查询所有用户和机构记录 -->
+	<select id="selectUserAndOrgInfo" parameterType="java.util.Map" resultMap="UserResultMap">
+		SELECT 
+		 B.ORGID,B.ORGNAME,A.USERID,USERNO,USERNAME,USERPWD,USERPWDDAY,PWDINVALID,PMD5,USERSTS,A.LSTTIME,A.LSTUSER,DEPTNAME,A.REPORTSAVERULE,
+		A.REPORTPRINTRULE,ISAMOUNTLIMIT,AMOUNTLIMIT,ISTIMELIMIT,A.TIMELIMIT,ISFREQUENCYLIMIT,FREQUENCYLIMIT,BIND_ADDRESS_NUM,
+		USERLEVEL,A.CREATETIME,A.CREATEUSER,STARTUSER,STARTTIME,USERLOCKSTS
+	    FROM RBAC_USER A left join RBAC_ORG B on A.ORGID=B.ORGID WHERE 1=1 
+		<if test="orgId != null">
+			AND B.ORGID = #{orgId} 
+		</if>
+		<if test="userNo != null">
+			AND USERNO = #{userNo} 
+		</if>
+		<if test="userName != null">
+			AND USERNAME LIKE '%${userName}%' 
+		</if>
+		<if test="userSts != null">
+			AND USERSTS=#{userSts}
+		</if>
+		<if test="userLevel != null">
+			AND USERLEVEL=#{userLevel}
+		</if>
+		ORDER BY A.CREATETIME
+	</select>
+	
+	<!-- 联合查询本级普通用户和下一级管理员 -->
+	<select id="selectUserAndManager" parameterType="java.util.Map" resultMap="UserResultMap">
+		SELECT ORGNAME,USERID,USERNO,USERNAME,USERSTS,USERLEVEL,CREATETIME,CREATEUSER,USERLOCKSTS
+		FROM
+		(SELECT B.ORGNAME,A.USERID,USERNO,USERNAME,USERSTS,USERLEVEL,A.CREATETIME,A.CREATEUSER,USERLOCKSTS
+	    FROM RBAC_USER A left join RBAC_ORG B on A.ORGID=B.ORGID WHERE   B.ORGID = #{orgId} AND USERLEVEL='B'
+		UNION 
+		SELECT B.ORGNAME,A.USERID,USERNO,USERNAME,USERSTS,USERLEVEL,A.CREATETIME,A.CREATEUSER,USERLOCKSTS
+	    FROM RBAC_USER A left join RBAC_ORG B on A.ORGID=B.ORGID WHERE  B.ORGID  in (
+			SELECT ORGID FROM RBAC_ORG  WHERE PORGID=#{orgId} AND ORGSTS = '1' ) 
+		AND USERLEVEL='A') C WHERE 1=1  
+		<if test="userNo != null">
+			AND USERNO = #{userNo} 
+		</if>
+		<if test="userName != null">
+			AND USERNAME LIKE '%${userName}%' 
+		</if>
+		<if test="userSts != null">
+			AND USERSTS=#{userSts}
+		</if>
+		ORDER BY CREATETIME 
+	</select>
+	
+	<select id="selectLoginErrorInfo" resultType="com.zrd.zx.core.entity.login.LoginError" parameterType="com.zrd.zx.core.entity.login.LoginError">
+		SELECT 
+			USERID AS userId,
+			USERERRNUM AS userErrNum,
+			LSTTIME AS lstTime,
+			LSTIP AS lstIp
+		FROM 
+			CRS_SYS_LOGIN_ERROR
+		WHERE 
+			USERID=#{userId, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updateLoginError" parameterType="com.zrd.zx.core.entity.login.LoginError">
+		UPDATE 
+			CRS_SYS_LOGIN_ERROR 
+		SET 
+			USERERRNUM = USERERRNUM + 1,
+			LSTTIME = NOW(),
+			LSTIP = #{lstIp, jdbcType=VARCHAR}
+		WHERE 
+			USERID=#{userId, jdbcType=VARCHAR}
+	</update>
+	
+	<insert id="insertLoginError" parameterType="com.zrd.zx.core.entity.login.LoginError">
+		INSERT INTO 
+			CRS_SYS_LOGIN_ERROR(USERID, USERERRNUM, LSTTIME, LSTIP)
+		VALUES
+			(#{userId, jdbcType=VARCHAR}, 1, NOW(), #{lstIp, jdbcType=VARCHAR})
+	</insert>
+
+	<delete id="delUserById" parameterType="java.lang.String">
+		DELETE FROM RBAC_USER WHERE USERID=#{userId}
+	</delete>
+	
+	<!-- 删除登录错误日志表 -->
+	<delete id="delLoginError" parameterType="java.lang.String">
+		DELETE FROM CRS_SYS_LOGIN_ERROR WHERE USERID=#{userId}
+	</delete>
+
+</mapper>
