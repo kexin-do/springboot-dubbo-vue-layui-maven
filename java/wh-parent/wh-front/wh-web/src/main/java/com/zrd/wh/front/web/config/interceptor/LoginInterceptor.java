@@ -26,7 +26,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * @author kexin
  * @date 2018/11/09
  */
-@Component
+//@Component
 public class LoginInterceptor implements HandlerInterceptor {
 
 
@@ -42,7 +42,6 @@ public class LoginInterceptor implements HandlerInterceptor {
 		response.setHeader("pragma", "no-cache");
 		response.setHeader("cache-control", "no-cache");
 		response.setHeader("expires", "0");
-		response.setHeader("Content-Type", "text/html;charset=utf-8");
 
 		return HandlerInterceptor.super.preHandle(request, response, handler);
 	}

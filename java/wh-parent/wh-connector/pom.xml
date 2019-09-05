@@ -7,16 +7,15 @@
         <groupId>com.zrd.wh</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <artifactId>connector</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>connector</name>
     <description>第三方接口模块</description>
+    <packaging>pom</packaging>
 
     <modules>
-        <module>../wh-core</module>
         <module>wh-cache</module>
     </modules>
 

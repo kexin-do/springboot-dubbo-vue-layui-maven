@@ -1,15 +1,14 @@
 package com.zrd.wh.front.web.front.auth.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.github.pagehelper.PageInfo;
-import com.zrd.wh.core.base.constant.Constant;
 import com.zrd.wh.core.base.constant.MessageModel;
 import com.zrd.wh.core.base.exception.DBException;
 import com.zrd.wh.core.base.exception.SysException;
+import com.zrd.wh.core.base.tool.StringUtil;
 import com.zrd.wh.core.base.tool.SysLogger;
 import com.zrd.wh.core.base.tool.UUIDGenerator;
 import com.zrd.wh.core.front.entity.auth.OrgInfo;
@@ -17,20 +16,16 @@ import com.zrd.wh.core.front.entity.auth.User;
 import com.zrd.wh.core.front.service.auth.IOrgInfoService;
 import com.zrd.wh.front.web.config.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.context.annotation.Scope;
+import org.springframework.web.bind.annotation.*;
 
-
-
-@Controller
+@RestController
+@Scope("prototype")
 @RequestMapping("/org")
 public class OrgInfoController extends BaseController {
   
 	private static final long serialVersionUID = -7864624250581177092L;
+
 	@Autowired
 	private IOrgInfoService orgInfoService;
 	
@@ -38,16 +33,9 @@ public class OrgInfoController extends BaseController {
 	 * 跳转机构管理页面
 	 * @return
 	 */
-	@RequestMapping(value = "/orgManage", method = RequestMethod.GET)
-	public String orgManage(MessageModel model, ModelMap modelMap){
-		String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
-		if("2".equals(orgManageModel)){
-			//管理模式为总行统一管理
-			if(super.getUser().getpOrgId()!=null&&!"".equals(super.getUser().getpOrgId())){
-				modelMap.put("flag", "3");//没有查询权限
-			}
-		}
-		return "/system/auth/orgManage/orgManage";
+	@RequestMapping(value = "/index", method = RequestMethod.POST)
+	public MessageModel orgManage(MessageModel model){
+		return model;
 	}
 
 	/**
@@ -57,29 +45,29 @@ public class OrgInfoController extends BaseController {
 	 * @param orgName
 	 * @return
 	 */
-	@RequestMapping(value = "/orgInfoSelect", method = RequestMethod.POST)
-	@ResponseBody
-	public Object orgInfoSelect(MessageModel model,
-			@RequestParam(required = false,defaultValue="10") String rows,
+	@RequestMapping(value = "/list", method = RequestMethod.POST)
+	public MessageModel list(MessageModel model,
+			@RequestParam(required = false,defaultValue="10") String limit,
             @RequestParam(required = false,defaultValue="1") String page,
             @RequestParam(required = false,value="orgName") String orgName,
             @RequestParam(required = false,value="orgCode") String orgCode){
-		SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->orgInfoSelect:", "orgName:"+orgName+"  orgCode:"+orgCode);
-		Map<String, Object> result = new HashMap<>();
+		SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->list:", "orgName:"+orgName+"  orgCode:"+orgCode);
 		User user = super.getUser();
 		try {
 			//验证查询字段是否为空
-			Map<String, String> orgMap = new HashMap<String, String>();
-			if (orgName.trim() != null && !"".equals(orgName.trim())){
+			Map<String, String> orgMap = new HashMap<>();
+			if (!StringUtil.isEmpty(orgName)){
 				orgMap.put("orgName", orgName.trim());
 			}
-			if (orgCode.trim() != null && !"".equals(orgCode.trim())){
+			if (!StringUtil.isEmpty(orgCode)){
 				orgMap.put("orgCode",  orgCode.trim());
 			}
 			orgMap.put("orgId",  user.getOrgId());
 			//分页查询子机构管理
-			PageInfo<OrgInfo> orgInfoList = new PageInfo<OrgInfo>();
-			if("A".equals(user.getUserLevel())){
+			PageInfo<OrgInfo> orgInfoList = orgInfoService.
+					selectSubOrgInfoAll(Integer.parseInt(page), Integer.parseInt(limit), orgMap);
+
+			/*if("A".equals(user.getUserLevel())){
 				//如果当前登录用户为管理员
 				//机构管理模式 1：管理下级 2：总行管理
 				String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
@@ -93,14 +81,11 @@ public class OrgInfoController extends BaseController {
 						orgInfoList = orgInfoService.selectHeadSubOrgInfo(Integer.parseInt(page), Integer.parseInt(rows), orgMap);
 					}
 				}
-				
-			}
-			//获取用户列表信息
-			result.put("rows", orgInfoList.getList());
-			//获取总条数
-			result.put("total", orgInfoList.getTotal());
-			
-			SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->orgInfoSelect:", "result:"+result);
+			}*/
+			model = super.getQuerySuccessNotice(model);
+			model.setRows(orgInfoList.getList());
+			model.setTotal(orgInfoList.getTotal());
+			SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->orgInfoSelect:", model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"OrgInfoController->orgInfoSelect:", e2);
 			e2.printStackTrace();
@@ -112,22 +97,21 @@ public class OrgInfoController extends BaseController {
         	model.setStatusInfo("查询机构列表错误");
 			e2.printStackTrace();
 		}
-		return result;
+		return model;
 	}
 	
 	/**
 	 * 添加机构管理
-	 * @param orgInfos
+	 * @param orgInfo
 	 * @return
 	 */
-	@RequestMapping(value = "/addOrgInfo", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel addOrgInfo(MessageModel model, OrgInfo orgInfos) {
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
+	public MessageModel add(MessageModel model, OrgInfo orgInfo) {
 		User user = this.getUser();
 		model = super.getAddFailureNotice(model);
 		try {
 			Map<String, String> orgMap = new HashMap<String, String>();
-			orgMap.put("orgCode",  orgInfos.getOrgCode());
+			orgMap.put("orgCode",  orgInfo.getOrgCode());
 			List<OrgInfo> orgInfoList = orgInfoService.selectOrgInfoByMap(orgMap);
 			if(orgInfoList != null && orgInfoList.size()>0){
 				model.setStatusInfo("已经存在此机构,机构代码重复");
@@ -136,29 +120,29 @@ public class OrgInfoController extends BaseController {
 			// 添加机构管理
 			String ids = UUIDGenerator.generate();
 			//设置机构id
-			orgInfos.setOrgId(ids);
+			orgInfo.setOrgId(ids);
 			String sOrgId = "";
 			//机构管理模式 1：管理下级 2：总行管理
 			String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
 			if("1".equals(orgManageModel)){
 				//管理模式为下级管理,则建立下级机构
 				//设置父机构
-				orgInfos.setpOrgId(user.getOrgId());
+				orgInfo.setpOrgId(user.getOrgId());
 				//设置机构快速检索号
 				sOrgId = orgInfoService.selectOneOrgInfo(user.getOrgId()).getsOrgId();
 			}
 			if("2".equals(orgManageModel)){
 				//管理模式为总行统一管理，设置所选机构
 				//设置机构快速检索号
-				sOrgId = orgInfoService.selectOneOrgInfo(orgInfos.getpOrgId()).getsOrgId();
+				sOrgId = orgInfoService.selectOneOrgInfo(orgInfo.getpOrgId()).getsOrgId();
 			}
 		 
-			orgInfos.setsOrgId(sOrgId+","+ids);
+			orgInfo.setsOrgId(sOrgId+","+ids);
 			//设置创建人
-			orgInfos.setCreateUser(user.getUserNo());
+			orgInfo.setCreateUser(user.getUserNo());
 			//设置变更人
-			orgInfos.setLstUser(user.getUserNo());
-			int result = orgInfoService.insert(orgInfos);
+			orgInfo.setLstUser(user.getUserNo());
+			int result = orgInfoService.insert(orgInfo);
 			if(result == 0) {
 				return model;
 			}
@@ -166,7 +150,7 @@ public class OrgInfoController extends BaseController {
 			/*super.insertSyslogs("添加机构管理",
 					"/org/addOrgInfo", Constant.LOG_TYPE_ADD, "addOrgInfo",
 					user.getUserNo()+"新增机构,机构代码:"+orgInfos.getOrgCode()+",机构名称:"+orgInfos.getOrgName());*/
-			SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->addOrgInfo:", "orgInfos:"+orgInfos.toString());
+			SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->addOrgInfo:", "orgInfos:"+orgInfo.toString());
 			
 			model = super.getAddSuccessNotice(model);
 			
@@ -186,20 +170,19 @@ public class OrgInfoController extends BaseController {
 	
 	/**
 	 * 修改机构管理
-	 * @param orgInfos
+	 * @param orgInfo
 	 * @return
 	 */
-	@RequestMapping(value = "/updateOrg", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel updateOrg(MessageModel model, OrgInfo orgInfos) {
+	@RequestMapping(value = "/update", method = RequestMethod.POST)
+	public MessageModel updateOrg(MessageModel model, OrgInfo orgInfo) {
 		
 		model = super.getUpdateFailureNotice(model);
 		try {
 			//修改机构管理
 			//更改创建人
 			String userNo = this.getUser().getUserNo();
-			orgInfos.setLstUser(userNo);
-			int result = orgInfoService.updateOrgInfo(orgInfos);
+			orgInfo.setLstUser(userNo);
+			int result = orgInfoService.updateOrgInfo(orgInfo);
 			if(result == 0) {
 				return model;
 			}
@@ -207,7 +190,7 @@ public class OrgInfoController extends BaseController {
 			/*super.insertSyslogs("修改机构管理",
 					"/org/updateOrg", Constant.LOG_TYPE_UPDATE, "updateOrg", 
 					userNo+"修改机构,机构代码:"+orgInfos.getOrgCode()+",机构名称:"+orgInfos.getOrgName());*/
-			SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->updateOrg:", "orgInfos:"+orgInfos.toString());
+			SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->updateOrg:", "orgInfos:"+orgInfo.toString());
 			
 			model = super.getUpdateSuccessNotice(model);
 			
@@ -232,10 +215,9 @@ public class OrgInfoController extends BaseController {
 	 * @param orgId
 	 * @return
 	 */
-	@RequestMapping(value = "/doStart", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel doStart(MessageModel model,
-			@RequestParam(required = false, value = "orgId") String orgId) {
+	@RequestMapping(value = "/start", method = RequestMethod.POST)
+	public MessageModel start(MessageModel model,
+			@RequestParam(value = "orgId") String orgId) {
 		model = super.getUpdateFailureNotice(model);
 		try {
 			String userNo = this.getUser().getUserNo();
@@ -276,10 +258,9 @@ public class OrgInfoController extends BaseController {
 	 * @param orgId
 	 * @return
 	 */
-	@RequestMapping(value = "/doEnd", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel doEnd(MessageModel model,
-			@RequestParam(required = false, value = "orgId") String orgId) {
+	@RequestMapping(value = "/stop", method = RequestMethod.POST)
+	public MessageModel stop(MessageModel model,
+			@RequestParam(value = "orgId") String orgId) {
 		
 		model = super.getUpdateFailureNotice(model);
 		try {
@@ -326,18 +307,31 @@ public class OrgInfoController extends BaseController {
 		return model;
 	}
 
-	@RequestMapping(value = "/ifgoAdd", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel ifgoAdd(MessageModel model) {
+	@RequestMapping(value = "/selectOne", method = RequestMethod.POST)
+	public MessageModel selectOne(MessageModel model,
+								  @RequestParam(value = "orgId") String orgId){
 
-		model = super.getUpdateFailureNotice(model);
-		String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
-		if("2".equals(orgManageModel)){
-			if(super.getUser().getpOrgId()!=null&&!"".equals(super.getUser().getpOrgId())){
-				model = super.getUpdateSuccessNotice(model);
+		model = super.getQueryFailureNotice(model);
+		try {
+			OrgInfo orgInfo = orgInfoService.selectOneOrgInfo(orgId);
+			if (orgInfo == null){
+				model.setStatusInfo("未找到当前机构");
+				return model;
 			}
-		}
 
+			model = super.getQuerySuccessNotice(model);
+			model.getData().put("orgInfo", orgInfo);
+		} catch (DBException e2) {
+			SysLogger.error(super.getLogUserAndIpAddr()+"OrgInfoController->doEnd:", e2);
+			e2.printStackTrace();
+			model = super.getDataBaseErrorNotice(model);
+			model.setStatusInfo("查询单个机构错误");
+		} catch (SysException e2) {
+			SysLogger.error(super.getLogUserAndIpAddr()+"OrgInfoController->doEnd:", e2);
+			model = super.getSystemErrorNotice(model);
+			model.setStatusInfo("查询单个机构错误");
+			e2.printStackTrace();
+		}
 		return model;
 	}
 

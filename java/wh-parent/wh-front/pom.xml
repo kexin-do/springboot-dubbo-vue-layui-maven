@@ -6,17 +6,15 @@
         <groupId>com.zrd.wh</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <artifactId>front</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>front</name>
     <description>前置管理系统父工程</description>
+    <packaging>pom</packaging>
 
     <modules>
-        <module>../wh-core/wh-core-base</module>
-        <module>../wh-core/wh-core-front</module>
         <module>wh-web</module>
         <module>wh-auth</module>
         <module>wh-system</module>

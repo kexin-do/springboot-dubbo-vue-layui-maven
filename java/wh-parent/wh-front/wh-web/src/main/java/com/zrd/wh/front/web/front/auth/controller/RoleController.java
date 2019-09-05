@@ -22,14 +22,13 @@ import com.zrd.wh.core.front.service.auth.IResourceService;
 import com.zrd.wh.core.front.service.auth.IRoleService;
 import com.zrd.wh.front.web.config.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
+@Scope("prototype")
 @RequestMapping("/role")
 public class RoleController extends BaseController {
 	 

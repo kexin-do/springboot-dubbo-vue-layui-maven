@@ -38,7 +38,6 @@ import com.alibaba.dubbo.rpc.RpcException;
 @Controller
 @Scope("prototype")
 @RequestMapping("/csmsp")
-@CrossOrigin
 public class LoginController extends BaseController {
 
 	private static final long serialVersionUID = -4364851594600291021L;
@@ -146,7 +145,7 @@ public class LoginController extends BaseController {
 				return model;
 			}
 			//修改密码时间
-			loginUser.setUserPwdDay(DateHelper.getNewDate(DateHelper.getCurrentStrDate()));
+			loginUser.setUserPwdDay(DateHelper.getCurrentDate(DateHelper.DatePattern.StandardDatePattern));
 			loginUser.setUserPwd(newPwd);//更新密码
 			int result = userInfoService.updateUser(loginUser);
 			if(result == 0) {
@@ -221,7 +220,7 @@ public class LoginController extends BaseController {
 			//登陆用户校验
 			if("0".equals(String.valueOf(userVerJson.get("msgType")))) {//校验通过
 				//密码修改密码时间设置为当日
-				loginUser.setUserPwdDay(DateHelper.getNewDate(DateHelper.getCurrentStrDate()));
+				loginUser.setUserPwdDay(DateHelper.getCurrentDate(DateHelper.DatePattern.StandardDatePattern));
 				loginUser.setUserPwd(newPwd);//更新密码
 				loginUser.setPwdInvalid(Constant.PASSWORD_INVLID_YES);//下次登陆不需要再去修改密码
                 loginUser.setLstLoginDate(new Date());

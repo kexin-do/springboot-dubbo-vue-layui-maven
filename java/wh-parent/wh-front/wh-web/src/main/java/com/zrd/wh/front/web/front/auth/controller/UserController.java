@@ -24,16 +24,13 @@ import com.zrd.wh.core.front.service.auth.IUserInfoService;
 import com.zrd.wh.front.web.config.controller.BaseController;
 import com.zrd.wh.front.web.front.login.entity.UserLoginStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-
+import org.springframework.web.bind.annotation.*;
 
 @Controller
+@Scope("prototype")
 @RequestMapping("/user")
 public class UserController extends BaseController {
  
@@ -338,7 +335,7 @@ public class UserController extends BaseController {
 				model.setStatusInfo("新旧密码不能相同");
 				return model;
 			}
-			user.setUserPwdDay(DateHelper.getNewDate(DateHelper.getCurrentStrDate()));
+			user.setUserPwdDay(DateHelper.getCurrentDate(DateHelper.DatePattern.StandardDatePattern));
 			user.setUserPwd(instance.encryptToString(newPwd));//更新密码
 			user.setPwdInvalid("0");//将密码状态设置为过期，让用户本人再次去修改密码
 			int result = userInfoService.updateUser(user);

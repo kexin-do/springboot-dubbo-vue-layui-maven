@@ -2,7 +2,9 @@ package com.zrd.wh.core.base.constant;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MessageModel implements Serializable{
@@ -56,8 +58,30 @@ public class MessageModel implements Serializable{
     private Map<String, Object> data = new HashMap<>();
     private String statusCode;
     private String statusInfo;
+    private List<Object> rows;
+    private Long total;
 
     public MessageModel(){}
+
+    public List<Object> getRows() {
+        return rows;
+    }
+
+    public void setRows(List<?> rows) {
+        if (rows != null && rows.size() > 0){
+            int initCap = rows.size() * 4 / 3 + 1;
+            this.rows = new ArrayList<>(initCap);
+            this.rows.addAll(rows);
+        }
+    }
+
+    public Long getTotal() {
+        return total;
+    }
+
+    public void setTotal(Long total) {
+        this.total = total;
+    }
 
     public Map<String, Object> getData() {
         return data;

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.zrd.wh.core.base.exception.DBException;
 import com.zrd.wh.core.base.exception.SysException;
@@ -109,9 +110,9 @@ public class OrgInfoServiceImpl extends BaseService implements IOrgInfoService {
 		List<OrgInfo> list = null;
 		PageInfo<OrgInfo> pageInfo = null;
 		try {
-			PageHelper.startPage(pageNum, pageSize);
-			list = orgInfoMapper.selectSubOrgInfoAll(param);
-	        pageInfo = new PageInfo<>(list);
+			Page<OrgInfo> orgInfoPage = PageHelper.startPage(pageNum, pageSize);
+			orgInfoMapper.selectSubOrgInfoAll(param);
+	        pageInfo = new PageInfo<>(orgInfoPage.getResult());
 		} catch (DataAccessException ex) {
 			throw new DBException(ex);
 		} catch (Exception ex) {

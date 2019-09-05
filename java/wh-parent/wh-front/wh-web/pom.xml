@@ -6,7 +6,6 @@
         <groupId>com.zrd.wh</groupId>
         <artifactId>front</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>com.zrd.wh.front</groupId>
@@ -14,6 +13,8 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>web</name>
     <description>前置管理系统</description>
+
+    <packaging>war</packaging>
 
     <properties>
         <java.version>1.8</java.version>
