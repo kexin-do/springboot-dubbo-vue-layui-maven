@@ -25,6 +25,15 @@ npm run e2e
 
 # run all tests
 npm test
+
+# install scss
+cnpm install node-sass --save-dev
+cnpm install sass-loader --save-dev
+cnpm install style-loader --save-dev
+cnpm install sass-resources-loader --save-dev
+
 ```
+
+
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).

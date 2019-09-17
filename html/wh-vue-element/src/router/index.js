@@ -1,25 +1,22 @@
-/* eslint-disable */
-
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '@/components/HelloWorld'
-import login from '@/components/login'
-import index from '@/components/index'
-import user from '@/views/front/auth/user/index'
-import org from '@/views/front/auth/org/index'
+import login from '@/views/login'
+import index from '@/views/index'
+import user from '@/views/front/auth/user'
+import org from '@/views/front/auth/org'
 
-Vue.use(Router);
+Vue.use(Router)
 
 export default new Router({
   routes: [
     {
       path: '/',
-      redirect:'/login'
+      redirect: '/login'
     },
     {
       path: '/login',
       name: 'login',
-      component:login
+      component: login
     },
     {
       path: '/index',
@@ -27,7 +24,7 @@ export default new Router({
       component: index,
       children: [
         {
-          name:'org',
+          name: 'org',
           path: '/org/orgManage',
           component: org
         },
@@ -37,7 +34,7 @@ export default new Router({
           component: user
         },
         {
-          name:'credit',
+          name: 'credit',
           path: '/creditUser/index',
           component: {
             template: '<div>credit</div>'
@@ -51,4 +48,3 @@ export default new Router({
     }
   ]
 })
-

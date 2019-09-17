@@ -2,7 +2,7 @@
   <el-row class="container">
     <el-col :span="24" class="header">
       <el-col :span="10" class="logo" :class="collapsed?'logo-collapse-width':'logo-width'">
-        {{collapsed?'':sysName}}
+        {{collapsed?'外汇':sysName}}
       </el-col>
       <el-col :span="1">
         <div class="tools" @click.prevent="collapse">
@@ -59,9 +59,9 @@
                  @mouseout="showMenu(index,false)"><i :class="'el-icon-plus'"></i></div>
             <ul class="el-menu submenu" :class="'submenu-hook-'+index" @mouseover="showMenu(index,true)"
                 @mouseout="showMenu(index,false)">
-              <li v-for="(child, childIndex) in item.submenu" :key="child.id" class="el-menu-item in-show"
-                  style="padding-left: 40px;" :class="$route.path===child.url?'is-active':''"
-                  @click="menuJump(child.url, childIndex)">{{child.name}}
+              <li v-for="(child, childIndex) in item.submenu" :key="child.id"
+                  style="padding-left: 40px;" :class="$route.path===child.url?'el-menu-item is-active':'el-menu-item in-show'"
+                  @click="menuJump(child.url, index, childIndex)">{{child.name}}
               </li>
             </ul>
           </li>
@@ -96,7 +96,7 @@ export default {
       sysName: '外汇后台管理系统',
       collapsed: false,
       sysUserName: '',
-      sysUserAvatar: '',
+      sysUserAvatar: '../assets/logo.png',
       menus: this.$store.state.menuInfo,
       topIndex: 0,
       secondIndex: 0,
@@ -109,36 +109,27 @@ export default {
       this.topIndex = index
       this.secondIndex = 0
       this.thirdIndex = 0
-      this.currentSecondMenu = this.menus[index].submenu
-      console.log(this.currentSecondMenu[0].submenu[0].url)
-      this.$router.push(this.currentSecondMenu[0].submenu[0].url)
+      this.currentSecondMenu = this.menus[this.topIndex].submenu
+      this.$router.push(this.currentSecondMenu[this.secondIndex].submenu[this.thirdIndex].url)
     },
     collapse () {
       this.collapsed = !this.collapsed
     },
     showMenu (i, status) {
-      this.secondIndex = i
-      this.thirdIndex = 0
       this.$refs.menuCollapsed.getElementsByClassName('submenu-hook-' + i)[0].style.display = status ? 'block' : 'none'
     },
-    menuJump (url, index) {
-      this.thirdIndex = index
+    menuJump (url, index, thridIndex) {
+      this.secondIndex = index
+      this.thirdIndex = thridIndex
       this.$router.push(url)
     }
   },
   created () {
-    this.currentSecondMenu = this.menus[0].submenu
     this.topIndex = 0
     this.secondIndex = 0
     this.thirdIndex = 0
-    this.$router.push(this.currentSecondMenu[0].submenu[0].url)
-    if (sessionStorage.getItem('store')) {
-      this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem('store'))))
-    }
-
-    window.addEventListener('beforeunload', () => {
-      sessionStorage.setItem('store', JSON.stringify(this.$store.state))
-    })
+    this.currentSecondMenu = this.menus[this.topIndex].submenu
+    this.$router.push(this.currentSecondMenu[this.secondIndex].submenu[this.thirdIndex].url)
   },
   mounted () {
   }
@@ -146,7 +137,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-  @import '../assets/vars';
 
   .container {
     position: absolute;
@@ -234,6 +224,10 @@ export default {
             ul {
               background-color: #283948;
               border: 5px solid #FFF;
+              color: #FFF;
+              .is-active {
+                color: rgb(36, 148, 242);
+              }
               .in-show {
                 color: #FFF;
               }

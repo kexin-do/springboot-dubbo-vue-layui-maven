@@ -13,7 +13,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
   body {
     margin: 0px;
     padding: 0px;
@@ -25,6 +25,28 @@ export default {
     -webkit-font-smoothing: antialiased;
   }
 
+  .button-align {
+    text-align: $button-align;
+  }
+  .iconClass{
+    cursor: $cursorPointer;
+  }
+  .iconClass-info {
+    cursor: $cursorPointer;
+    color: blue;
+  }
+  .iconClass-success {
+    cursor: $cursorPointer;
+    color: green;
+  }
+  .iconClass-danger {
+    cursor: $cursorPointer;
+    color: red;
+  }
+  .iconClass-warning {
+    cursor: $cursorPointer;
+    color: yellow;
+  }
   #app {
     position: absolute;
     top: 0px;

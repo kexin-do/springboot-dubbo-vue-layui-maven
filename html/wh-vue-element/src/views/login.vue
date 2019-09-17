@@ -1,5 +1,5 @@
 <template>
-  <el-form :model="loginInfo"  ref="loginInfo" label-position="left" label-width="0px" class="demo-ruleForm login-container">
+  <el-form :model="loginInfo"  ref="loginInfo" label-position="left" label-width="0px" class="login-container">
     <h3 class="title">系统登录</h3>
     <el-form-item prop="username">
       <el-input type="text" v-model="loginInfo.username" auto-complete="off" placeholder="账号"></el-input>
@@ -7,8 +7,8 @@
     <el-form-item prop="password">
       <el-input type="password" v-model="loginInfo.password" auto-complete="off" placeholder="密码"></el-input>
     </el-form-item>
-    <el-checkbox v-model="checked" checked class="remember">记住密码</el-checkbox>
-    <el-form-item style="width:100%;">
+    <el-form-item style="height: 20px;"></el-form-item>
+    <el-form-item>
       <el-button type="primary" style="width:100%;" @click.native.prevent="login" :loading="logining">登录</el-button>
       <!--<el-button @click.native.prevent="handleReset2">重置</el-button>-->
     </el-form-item>
@@ -42,9 +42,15 @@ export default {
           this.logining = false;
           this.responseResult = JSON.stringify(successResponse.data)
           if (successResponse.data.statusCode === '211') {
-            console.log(successResponse.data.data.menu)
             this.$store.dispatch('setMenuInfo', JSON.parse(successResponse.data.data.menu))
             this.$router.replace({path: '/index'})
+          }else {
+            this.$message({
+              message: successResponse.data.statusInfo,
+              type: 'error',
+              showClose: true,
+              offset: '120'
+            })
           }
         })
         .catch(failResponse => {
@@ -67,13 +73,13 @@ export default {
     background: #fff;
     border: 1px solid #eaeaea;
     box-shadow: 0 0 25px #cac6c6;
-  .title {
-    margin: 0px auto 40px auto;
-    text-align: center;
-    color: #505458;
-  }
-  .remember {
-    margin: 0px 0px 35px 0px;
-  }
+    .title {
+      margin: 0px auto 40px auto;
+      text-align: center;
+      color: #505458;
+    }
+    .remember {
+      margin: 0 0 35px 0;
+    }
   }
 </style>

@@ -4,6 +4,7 @@
 import axios from 'axios'
 import requestConfig from './requestConfig.js'
 import qs from 'qs'
+import router from '@/router'
 
 // axios默认配置
 // 超时时间
@@ -24,7 +25,6 @@ axios.defaults.transformRequest = function (data) {
 axios.interceptors.request.use(
   config => {
     config.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
-    // 判断是否存在ticket，如果存在的话，则每个http header都加上ticket
     return config
   },
   error => {
@@ -35,8 +35,9 @@ axios.interceptors.request.use(
 // http response 拦截器
 axios.interceptors.response.use(
   response => {
-    if (response.data.resultCode === '404') {
-      console.log('response.data.resultCode是404')
+    if (response.data.statusCode === '416') {
+      console.log(response.data.statusCode)
+      router.replace({path: '/login'})
     } else {
       return response
     }

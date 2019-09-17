@@ -30,17 +30,24 @@ const services = {
       data: params
     })
   },
-  changeStatus: function (params) {
+  changeStatusStart: function (params) {
     return this.$axios({
       method: 'post',
-      url: '/org/changeStatus',
+      url: '/org/start',
+      data: params
+    })
+  },
+  changeStatusStop: function (params) {
+    return this.$axios({
+      method: 'post',
+      url: '/org/stop',
       data: params
     })
   },
   add: function (params) {
     return this.$axios({
       method: 'post',
-      url: '/org/changeStatus',
+      url: '/org/add',
       data: params
     })
   }

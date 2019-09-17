@@ -1,67 +1,270 @@
 /** 处理页面跳转和页面参数传递 **/
-import {services} from './userService'
+import services from './userService'
+import userEdit from '@/components/front/user/edit'
+import userAdd from '@/components/front/user/add'
+import userDetail from '@/components/front/user/detail'
 
 const name = 'user'
 
 const data = function () {
   return {
     params: {
-      username: ''
+      userName: '',
+      userNo: '',
+      userSts: '',
+      pageSize: 10,
+      pageNum: 1
     },
-    user: {},
-    loading: false,
-    list: []// [{"id":10000,"username":"user-0","sex":"女","city":"城市-0","sign":"签名-0","experience":255,"logins":24,"wealth":82830700,"classify":"作家","score":57},{"id":10001,"username":"user-1","sex":"男","city":"城市-1","sign":"签名-1","experience":884,"logins":58,"wealth":64928690,"classify":"词人","score":27},{"id":10002,"username":"user-2","sex":"女","city":"城市-2","sign":"签名-2","experience":650,"logins":77,"wealth":6298078,"classify":"酱油","score":31},{"id":10003,"username":"user-3","sex":"女","city":"城市-3","sign":"签名-3","experience":362,"logins":157,"wealth":37117017,"classify":"诗人","score":68},{"id":10004,"username":"user-4","sex":"男","city":"城市-4","sign":"签名-4","experience":807,"logins":51,"wealth":76263262,"classify":"作家","score":6},{"id":10005,"username":"user-5","sex":"女","city":"城市-5","sign":"签名-5","experience":173,"logins":68,"wealth":60344147,"classify":"作家","score":87},{"id":10006,"username":"user-6","sex":"女","city":"城市-6","sign":"签名-6","experience":982,"logins":37,"wealth":57768166,"classify":"作家","score":34},{"id":10007,"username":"user-7","sex":"男","city":"城市-7","sign":"签名-7","experience":727,"logins":150,"wealth":82030578,"classify":"作家","score":28},{"id":10008,"username":"user-8","sex":"男","city":"城市-8","sign":"签名-8","experience":951,"logins":133,"wealth":16503371,"classify":"词人","score":14},{"id":10009,"username":"user-9","sex":"女","city":"城市-9","sign":"签名-9","experience":484,"logins":25,"wealth":86801934,"classify":"词人","score":75}]
+    selectDate: [],
+    currentVo: {
+      userId: '',
+      userNo: '',
+      userName: '',
+      userPwd: '',
+      userSts: '',
+      orgCode: '',
+      orgName: '',
+      reportSaveRule: '',
+      reportPrintRule: '',
+      bindAddressNum: '',
+      userLevel: '',
+      userLockSts: '',
+      idNo: ''
+    },
+    status: [{label: '请选择', val: ''}, {label: '正常', val: '1'}, {label: '停用', val: '2'}],
+    list: [],
+    total: 0,
+    showDialog: {
+      edit: false,
+      add: false,
+      detail: false
+    },
+    editOrAddWidth: '75%',
+    loading: {
+      detail: false,
+      search: false,
+      edit: false,
+      add: false,
+      list: false,
+      del: false
+    },
+    formRules: {
+      userName: [
+        { required: true, message: '请输入用户名称', trigger: 'blur' },
+        { min: 6, max: 12, message: '长度必须为6-12个字符', trigger: 'blur' }
+      ],
+      userNo: [
+        { required: true, message: '请输入用户编号', trigger: 'blur' },
+        { min: 6, max: 20, message: '长度必须为6-20个字符', trigger: 'blur' }
+      ],
+      userPwd: [
+        { required: true, message: '请输入用户密码', trigger: 'blur' },
+        { min: 8, max: 15, message: '长度必须为8-15个字符', trigger: 'blur' }
+      ],
+      userSts: [
+        { required: true, message: '请选择用户状态', trigger: 'blur' }
+      ]
+    },
+    pageSizes: [10, 20, 50, 100],
+    pickerOptions: {
+      shortcuts: [{
+        text: '最近一周',
+        onClick (picker) {
+          const end = new Date()
+          const start = new Date()
+          start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+          picker.$emit('pick', [start, end])
+        }
+      }, {
+        text: '最近一个月',
+        onClick (picker) {
+          const end = new Date()
+          const start = new Date()
+          start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+          picker.$emit('pick', [start, end])
+        }
+      }, {
+        text: '最近三个月',
+        onClick (picker) {
+          const end = new Date()
+          const start = new Date()
+          start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
+          picker.$emit('pick', [start, end])
+        }
+      }]
+    }
   }
 }
 
 const methods = {
-  formatSex: function (row, column, cellValue, index) {
-    return row.sex === 1 ? '男' : row.sex === 0 ? '女' : '未知'
+  formatSts: function (row, column, cellValue, index) {
+    return cellValue === '1' ? '正常' : '停用'
+  },
+  formatLockSts: function (row, column, cellValue, index) {
+    return cellValue === '0' ? '正常' : '锁定'
+  },
+  formatTime: function (row, column, cellValue, index) {
+    return this.$dateFormat.format(new Date(cellValue))
+  },
+  pageChange: function (pageNum) {
+    this.params.pageNum = pageNum
+    this.search()
+  },
+  sizeChange: function (pageSize) {
+    this.params.pageSize = pageSize
+    this.search()
+  },
+  searchDateChange: function () {
+    this.params.startTime = this.selectDate[0]
+    this.params.endTime = this.selectDate[1]
   },
   search: function () {
-    this.loading = true
+    this.loading.search = true
     services.list(this.params)
       .then((success) => {
-
+        console.log(success.data.data.rows)
+        this.list = success.data.data.rows
+        this.total = success.data.data.total
       })
       .catch((fail) => {
-
+        this.$message({
+          message: '请求失败',
+          type: 'error',
+          showClose: true,
+          offset: '120'
+        })
       })
       .finally(() => {
-        this.loading = false
+        this.loading.search = false
       })
   },
-  show: function (row) {
-    this.loading = true
-    console.log(row)
-    services.show({id: row.id})
+  showDetail: function (row) {
+    this.showDialogWindow('detail')
+    services.selectOne({userId: row.userId})
       .then((success) => {
-
+        this.currentVo = {}
+        this.currentVo = success.data.data.userInfo
       })
       .catch((fail) => {
 
       })
       .finally(() => {
-        this.loading = false
+        this.loading.detail = false
       })
   },
-  edit: function (row) {
-    this.loading = true
-    console.log(row)
-    services.edit({id: row.id})
+  editShow: function (row) {
+    this.showDialogWindow('edit')
+    services.selectOne({userId: row.userId})
       .then((success) => {
-
+        this.currentVo = {}
+        this.currentVo = success.data.data.userInfo
       })
       .catch((fail) => {
 
       })
       .finally(() => {
-        this.loading = false
       })
+  },
+  edit: function (data) {
+    console.log(data)
+    this.loading.edit = true
+    services.edit(data).then((success) => {
+      console.log(success)
+      this.$message({
+        message: '提交成功',
+        type: 'success'
+      })
+      this.cancelShowWindow('edit')
+      this.search()
+      this.currentVo = {}
+    }).catch((fail) => {
+    }).finally(() => {
+      this.loading.edit = false
+    })
+  },
+  showDialogWindow: function (type) {
+    this.currentVo = {}
+    if (type === 'add') {
+      this.showDialog.add = true
+    } else if (type === 'edit') {
+      this.showDialog.edit = true
+    } else if (type === 'detail') {
+      this.showDialog.detail = true
+    }
+  },
+  cancelShowWindow: function (type) {
+    if (type === 'add') {
+      this.showDialog.add = !this.showDialog.add
+    } else if (type === 'edit') {
+      this.showDialog.edit = !this.showDialog.edit
+    } else if (type === 'detail') {
+      this.showDialog.detail = !this.showDialog.detail
+    }
+  },
+  changeLockStatus: function (row) {
+    if (row.userLockSts === '0') {
+      services.changeStatusLock({userId: row.userId})
+        .then((success) => {
+          this.$message({
+            message: '锁定成功',
+            type: 'success'
+          })
+          this.search()
+        })
+        .catch((fail) => {
+
+        })
+        .finally(() => {
+        })
+    } else {
+      services.changeStatusUnLock({userId: row.userId})
+        .then((success) => {
+          this.$message({
+            message: '解锁成功',
+            type: 'success'
+          })
+          this.search()
+        })
+        .catch((fail) => {
+
+        })
+        .finally(() => {
+        })
+    }
+  },
+  changeStatus: function (row) {
+    if (row.userSts === '1') {
+      services.changeStatusStop({userId: row.userId})
+        .then((success) => {
+          this.$message({
+            message: '停用成功',
+            type: 'success'
+          })
+          this.search()
+        })
+        .catch((fail) => {
+
+        })
+        .finally(() => {
+        })
+    } else {
+      services.changeStatusStart({userId: row.userId})
+        .then((success) => {
+          this.$message({
+            message: '启用成功',
+            type: 'success'
+          })
+          this.search()
+        })
+        .catch((fail) => {
+
+        })
+        .finally(() => {
+        })
+    }
   },
   del: function (row) {
-    this.loading = true
-    console.log(row)
+    this.loading.del = true
     services.del({id: row.id})
       .then((success) => {
 
@@ -70,21 +273,27 @@ const methods = {
 
       })
       .finally(() => {
-        this.loading = false
+        this.loading.del = false
       })
   },
-  add: function (row) {
-    this.loading = true
-    console.log(row)
-    services.add(this.user)
+  add: function (data) {
+    this.loading.add = true
+    services.add(data)
       .then((success) => {
-
+        console.log(success)
+        this.$message({
+          message: '提交成功',
+          type: 'success'
+        })
+        this.cancelShowWindow('add')
+        this.search()
+        this.currentVo = {}
       })
       .catch((fail) => {
 
       })
       .finally(() => {
-        this.loading = false
+        this.loading.add = false
       })
   }
 }
@@ -94,6 +303,9 @@ const computed = {
 }
 
 const components = {
+  'user-edit': userEdit,
+  'user-add': userAdd,
+  'user-detail': userDetail
 }
 
 const watch = {
@@ -101,7 +313,7 @@ const watch = {
 }
 
 function created () {
-
+  services.$axios = this.$axios
 }
 
 function mounted () {

@@ -3,6 +3,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import 'font-awesome/css/font-awesome.min.css'
 import qs from 'qs'
 
 import router from '@/router'

@@ -1,33 +1,23 @@
 /** 处理页面跳转和页面参数传递 **/
 import services from './orgService'
+import orgEdit from '@/components/front/org/edit'
+import orgAdd from '@/components/front/org/add'
+import orgDetail from '@/components/front/org/detail'
 
-const name = 'user'
+const name = 'org'
 
 const data = function () {
-  let checkSts = (rule, value, callback) => {
-    if (!value) {
-      return callback(new Error('机构状态不能为空'))
-    }
-    setTimeout(() => {
-      if (!Number.isInteger(value)) {
-        callback(new Error('请输入数字值'))
-      } else {
-        if (value > 2 && value < 0) {
-          callback(new Error('可输入值必须为 0 和 1'))
-        } else {
-          callback()
-        }
-      }
-    }, 1000)
-  }
   return {
     params: {
       orgName: '',
       orgCode: '',
+      startTime: '',
+      endTime: '',
       pageSize: 10,
       pageNum: 1
     },
-    addObj: {
+    selectDate: [],
+    currentVo: {
       orgId: '',
       orgCode: '',
       orgName: '',
@@ -40,9 +30,28 @@ const data = function () {
       reportPrintRule: '',
       timeLimit: '',
       address: '',
-      linkMan: ''
+      linkMan: '',
+      pOrgName: '',
+      linkMode: '',
+      otherLinkMode: ''
     },
-    editFormRules: {
+    list: [],
+    total: 0,
+    showDialog: {
+      edit: false,
+      add: false,
+      detail: false
+    },
+    editOrAddWidth: '75%',
+    loading: {
+      detail: false,
+      search: false,
+      edit: false,
+      add: false,
+      list: false,
+      del: false
+    },
+    formRules: {
       orgName: [
         { required: true, message: '请输入机构名称', trigger: 'blur' }
       ],
@@ -51,82 +60,99 @@ const data = function () {
         { min: 14, max: 14, message: '长度必须为14个字符', trigger: 'blur' }
       ],
       orgSts: [
-        { validator: checkSts, trigger: 'blur' }
+        { required: true, message: '请选择机构状态', trigger: 'blur' }
       ]
     },
-    editObj: {
-      orgId: '',
-      orgCode: '',
-      orgName: '',
-      orgFName: '',
-      orgEName: '',
-      orgAddress: '',
-      areaCode: '',
-      orgSts: '',
-      reportSaveRule: '',
-      reportPrintRule: '',
-      timeLimit: '',
-      address: '',
-      linkMan: ''
-    },
-    loading: false,
-    list: [],
-    total: 0,
-    editObjShow: false,
-    addObjShow: false,
-    editOrAddWidth: '80%',
-    showLoading: false,
-    searchLoading: false,
-    editLoading: false,
-    addLoading: false,
-    listLoading: false,
-    delLoading: false
+    pageSizes: [10, 20, 50, 100],
+    pickerOptions: {
+      shortcuts: [{
+        text: '最近一周',
+        onClick (picker) {
+          const end = new Date()
+          const start = new Date()
+          start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+          picker.$emit('pick', [start, end])
+        }
+      }, {
+        text: '最近一个月',
+        onClick (picker) {
+          const end = new Date()
+          const start = new Date()
+          start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+          picker.$emit('pick', [start, end])
+        }
+      }, {
+        text: '最近三个月',
+        onClick (picker) {
+          const end = new Date()
+          const start = new Date()
+          start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
+          picker.$emit('pick', [start, end])
+        }
+      }]
+    }
   }
 }
 
 const methods = {
   formatSts: function (row, column, cellValue, index) {
-    return cellValue === 0 ? '正常' : '停用'
+    return cellValue === '1' ? '正常' : '停用'
   },
   formatTime: function (row, column, cellValue, index) {
     return this.$dateFormat.format(new Date(cellValue))
   },
   pageChange: function (pageNum) {
     this.params.pageNum = pageNum
+    this.search()
+  },
+  sizeChange: function (pageSize) {
+    this.params.pageSize = pageSize
+    this.search()
+  },
+  searchDateChange: function () {
+    this.params.startTime = this.selectDate[0]
+    this.params.endTime = this.selectDate[1]
   },
   search: function () {
-    this.searchLoading = true
+    this.loading.search = true
     services.list(this.params)
       .then((success) => {
-        this.list = success.data.rows
-        this.total = success.data.total
+        console.log(success.data.data.rows)
+        this.list = success.data.data.rows
+        this.total = success.data.data.total
       })
       .catch((fail) => {
-
+        this.$message({
+          message: '请求失败',
+          type: 'error',
+          showClose: true,
+          offset: '120'
+        })
       })
       .finally(() => {
-        this.searchLoading = false
+        this.loading.search = false
       })
   },
-  show: function (row) {
-    this.showLoading = true
-    console.log(JSON.stringify(row))
-    services.selectOne({id: row.id})
+  showDetail: function (row) {
+    this.showDialogWindow('detail')
+    services.selectOne({orgId: row.orgId})
       .then((success) => {
-
+        this.currentVo = {}
+        this.currentVo = success.data.data.orgInfo
       })
       .catch((fail) => {
 
       })
       .finally(() => {
-        this.showLoading = false
+        this.loading.detail = false
       })
   },
   editShow: function (row) {
-    this.editObjShow = true
+    this.showDialogWindow('edit')
     services.selectOne({orgId: row.orgId})
       .then((success) => {
-        this.editObj = success.data.data.orgInfo
+        this.currentVo = {}
+        this.currentVo = success.data.data.orgInfo
       })
       .catch((fail) => {
 
@@ -134,43 +160,75 @@ const methods = {
       .finally(() => {
       })
   },
-  edit: function (formName) {
-    console.log(formName)
-    this.$refs[formName].validate((valid) => {
-      console.log(valid)
-      if (valid) {
-        console.log('进行异步')
-        this.$confirm('确认提交吗？', '提示', {}).then(() => {
-          this.edit(this.editObj).then((success) => {
-            this.editLoading = false
-            this.$message({
-              message: '提交成功',
-              type: 'success'
-            })
-            this.$refs['editForm'].resetFields()
-            this.editObjShow = false
-            this.search()
-          }).catch((fail) => {
-          }).finally(() => {
-          })
-        })
-      } else {
-        return false
-      }
+  edit: function (data) {
+    console.log(data)
+    this.loading.edit = true
+    services.edit(data).then((success) => {
+      console.log(success)
+      this.$message({
+        message: '提交成功',
+        type: 'success'
+      })
+      this.cancelShowWindow('edit')
+      this.search()
+      this.currentVo = {}
+    }).catch((fail) => {
+    }).finally(() => {
+      this.loading.edit = false
     })
-    services.edit(this.editObj)
-      .then((success) => {
-        this.editObjShow = false
-      })
-      .catch((fail) => {
+  },
+  showDialogWindow: function (type) {
+    this.currentVo = {}
+    if (type === 'add') {
+      this.showDialog.add = true
+    } else if (type === 'edit') {
+      this.showDialog.edit = true
+    } else if (type === 'detail') {
+      this.showDialog.detail = true
+    }
+  },
+  cancelShowWindow: function (type) {
+    if (type === 'add') {
+      this.showDialog.add = !this.showDialog.add
+    } else if (type === 'edit') {
+      this.showDialog.edit = !this.showDialog.edit
+    } else if (type === 'detail') {
+      this.showDialog.detail = !this.showDialog.detail
+    }
+  },
+  changeStatus: function (row) {
+    if (row.orgSts === '1') {
+      services.changeStatusStop({orgId: row.orgId})
+        .then((success) => {
+          this.$message({
+            message: '停用成功',
+            type: 'success'
+          })
+          this.search()
+        })
+        .catch((fail) => {
 
-      })
-      .finally(() => {
-        this.loading = false
-      })
+        })
+        .finally(() => {
+        })
+    } else {
+      services.changeStatusStart({orgId: row.orgId})
+        .then((success) => {
+          this.$message({
+            message: '启用成功',
+            type: 'success'
+          })
+          this.search();
+        })
+        .catch((fail) => {
+
+        })
+        .finally(() => {
+        })
+    }
   },
   del: function (row) {
-    this.delLoading = true
+    this.loading.del = true
     services.del({id: row.id})
       .then((success) => {
 
@@ -179,23 +237,27 @@ const methods = {
 
       })
       .finally(() => {
-        this.delLoading = false
+        this.loading.del = false
       })
   },
-  addShow: function (row) {
-    this.addObjShow = true
-  },
-  add: function (row) {
-    this.addLoading = true
-    console.log(JSON.parse(row))
-    services.add(this.addObj)
+  add: function (data) {
+    this.loading.add = true
+    services.add(data)
       .then((success) => {
+        console.log(success)
+        this.$message({
+          message: '提交成功',
+          type: 'success'
+        })
+        this.cancelShowWindow('add')
+        this.search()
+        this.currentVo = {}
       })
       .catch((fail) => {
 
       })
       .finally(() => {
-        this.addLoading = false
+        this.loading.add = false
       })
   }
 }
@@ -205,6 +267,9 @@ const computed = {
 }
 
 const components = {
+  'org-edit': orgEdit,
+  'org-add': orgAdd,
+  'org-detail': orgDetail
 }
 
 const watch = {
