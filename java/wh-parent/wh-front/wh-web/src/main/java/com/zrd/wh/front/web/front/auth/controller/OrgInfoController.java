@@ -47,8 +47,8 @@ public class OrgInfoController extends BaseController {
 	 */
 	@RequestMapping(value = "/list", method = RequestMethod.POST)
 	public MessageModel list(MessageModel model,
-			@RequestParam(required = false,defaultValue="10") String limit,
-            @RequestParam(required = false,defaultValue="1") String page,
+			@RequestParam(required = false, value = "pageSize", defaultValue = "10") String rows,
+			@RequestParam(required = false, value = "pageNum", defaultValue = "1") String page,
             @RequestParam(required = false,value="orgName") String orgName,
             @RequestParam(required = false,value="orgCode") String orgCode){
 		SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->list:", "orgName:"+orgName+"  orgCode:"+orgCode);
@@ -65,7 +65,7 @@ public class OrgInfoController extends BaseController {
 			orgMap.put("orgId",  user.getOrgId());
 			//分页查询子机构管理
 			PageInfo<OrgInfo> orgInfoList = orgInfoService.
-					selectSubOrgInfoAll(Integer.parseInt(page), Integer.parseInt(limit), orgMap);
+					selectSubOrgInfoAll(Integer.parseInt(page), Integer.parseInt(rows), orgMap);
 
 			/*if("A".equals(user.getUserLevel())){
 				//如果当前登录用户为管理员
@@ -83,8 +83,9 @@ public class OrgInfoController extends BaseController {
 				}
 			}*/
 			model = super.getQuerySuccessNotice(model);
-			model.setRows(orgInfoList.getList());
-			model.setTotal(orgInfoList.getTotal());
+			Map<String, Object> data = model.getData();
+			data.put("rows", orgInfoList.getList());
+			data.put("total", orgInfoList.getTotal());
 			SysLogger.info(super.getLogUserAndIpAddr()+"OrgInfoController->orgInfoSelect:", model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"OrgInfoController->orgInfoSelect:", e2);
@@ -173,7 +174,7 @@ public class OrgInfoController extends BaseController {
 	 * @param orgInfo
 	 * @return
 	 */
-	@RequestMapping(value = "/update", method = RequestMethod.POST)
+	@RequestMapping(value = "/edit", method = RequestMethod.POST)
 	public MessageModel updateOrg(MessageModel model, OrgInfo orgInfo) {
 		
 		model = super.getUpdateFailureNotice(model);
@@ -288,10 +289,16 @@ public class OrgInfoController extends BaseController {
 				if(count != orgInfoList.size()) {
 					return model;
 				}
-				model = super.getUpdateSuccessNotice(model);
 			}
-				
-			
+			OrgInfo orgInfo = new OrgInfo();
+			orgInfo.setOrgId(orgId);
+			orgInfo.setOrgSts("2");
+			result = orgInfoService.updateOrgInfo(orgInfo);
+			if (result < 1) {
+				return model;
+			}
+
+			model = super.getUpdateSuccessNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"OrgInfoController->doEnd:", e2);
 			e2.printStackTrace();

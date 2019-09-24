@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/wh-front/wh-auth/wh-auth.iml" filepath="$PROJECT_DIR$/wh-front/wh-auth/wh-auth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-business/wh-business.iml" filepath="$PROJECT_DIR$/wh-business/wh-business.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-connector/wh-cache/wh-cache.iml" filepath="$PROJECT_DIR$/wh-connector/wh-cache/wh-cache.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-connector/wh-connector.iml" filepath="$PROJECT_DIR$/wh-connector/wh-connector.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-core/wh-core.iml" filepath="$PROJECT_DIR$/wh-core/wh-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-core/wh-core-base/wh-core-base.iml" filepath="$PROJECT_DIR$/wh-core/wh-core-base/wh-core-base.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-core/wh-core-business/wh-core-business.iml" filepath="$PROJECT_DIR$/wh-core/wh-core-business/wh-core-business.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-core/wh-core-front/wh-core-front.iml" filepath="$PROJECT_DIR$/wh-core/wh-core-front/wh-core-front.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-front/wh-front.iml" filepath="$PROJECT_DIR$/wh-front/wh-front.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-parent.iml" filepath="$PROJECT_DIR$/wh-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-front/wh-system/wh-system.iml" filepath="$PROJECT_DIR$/wh-front/wh-system/wh-system.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wh-front/wh-web/wh-web.iml" filepath="$PROJECT_DIR$/wh-front/wh-web/wh-web.iml" />
+    </modules>
+  </component>
+</project>

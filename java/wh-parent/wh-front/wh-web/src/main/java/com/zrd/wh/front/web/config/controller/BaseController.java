@@ -51,7 +51,6 @@ public class BaseController implements Serializable {
 	@ModelAttribute
 	public void prepare(HttpServletRequest baseRequest, HttpServletResponse response) throws DBException, SysException {
 		HttpSession session = baseRequest.getSession();
-		System.out.println(session.getId());
 		user = (User) session.getAttribute(Constant.LOGIN_USER);
 		if (user != null) {
 			// 只要用户进行操作就设置超时时间，当用户在设置时间后未进行任何操作那么session超时
@@ -414,6 +413,6 @@ public class BaseController implements Serializable {
 	}
 
 	protected Object getSystemParamCache(String orgManageModel) {
-		return "123123123";
+		return "1";
 	}
 }

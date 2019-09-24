@@ -44,6 +44,9 @@ public class MessageModel implements Serializable{
     public static final String UPDATE_FAILURE_MSG="更新数据失败";
     public static final String ADD_FAILURE_CODE="415";
     public static final String ADD_FAILURE_MSG="添加数据失败";
+    public static final String LOGIN_TIMEOUT_CODE = "416";
+    public static final String LOGIN_TIMEOUT_MSG = "登录超时";
+
 
     public static final String AUTHORIZATION_FAILURE_CODE="610";
     public static final String AUTHORIZATION_FAILURE_MSG="授权失败";
@@ -58,30 +61,8 @@ public class MessageModel implements Serializable{
     private Map<String, Object> data = new HashMap<>();
     private String statusCode;
     private String statusInfo;
-    private List<Object> rows;
-    private Long total;
 
     public MessageModel(){}
-
-    public List<Object> getRows() {
-        return rows;
-    }
-
-    public void setRows(List<?> rows) {
-        if (rows != null && rows.size() > 0){
-            int initCap = rows.size() * 4 / 3 + 1;
-            this.rows = new ArrayList<>(initCap);
-            this.rows.addAll(rows);
-        }
-    }
-
-    public Long getTotal() {
-        return total;
-    }
-
-    public void setTotal(Long total) {
-        this.total = total;
-    }
 
     public Map<String, Object> getData() {
         return data;

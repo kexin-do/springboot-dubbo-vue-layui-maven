@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="wh-auth" />
+        <module name="wh-core-base" />
+        <module name="wh-system" />
+        <module name="wh-web" />
+        <module name="wh-core-front" />
+        <module name="wh-core-business" />
+        <module name="wh-cache" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="business" target="1.8" />
+      <module name="wh-auth" target="1.8" />
+      <module name="wh-business" target="1.8" />
+      <module name="wh-bussiness" target="1.8" />
+      <module name="wh-cache" target="1.8" />
+      <module name="wh-connector" target="1.8" />
+      <module name="wh-core" target="1.8" />
+      <module name="wh-core-base" target="1.8" />
+      <module name="wh-core-business" target="1.8" />
+      <module name="wh-core-front" target="1.8" />
+      <module name="wh-front" target="1.8" />
+      <module name="wh-parent" target="1.8" />
+      <module name="wh-system" target="1.8" />
+      <module name="wh-web" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="wh-auth" options="-parameters" />
+      <module name="wh-cache" options="-parameters" />
+      <module name="wh-core-base" options="-parameters" />
+      <module name="wh-core-business" options="-parameters" />
+      <module name="wh-core-front" options="-parameters" />
+      <module name="wh-system" options="-parameters" />
+      <module name="wh-web" options="-parameters" />
+    </option>
+  </component>
+</project>

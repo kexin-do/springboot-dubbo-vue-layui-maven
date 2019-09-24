@@ -12,6 +12,7 @@ import com.zrd.wh.core.base.constant.MessageModel;
 import com.zrd.wh.core.base.exception.DBException;
 import com.zrd.wh.core.base.exception.SysException;
 import com.zrd.wh.core.base.tool.DateHelper;
+import com.zrd.wh.core.base.tool.StringUtil;
 import com.zrd.wh.core.base.tool.SysLogger;
 import com.zrd.wh.core.base.tool.UUIDGenerator;
 import com.zrd.wh.core.front.entity.auth.OrgInfo;
@@ -25,11 +26,10 @@ import com.zrd.wh.front.web.config.controller.BaseController;
 import com.zrd.wh.front.web.front.login.entity.UserLoginStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @Scope("prototype")
 @RequestMapping("/user")
 public class UserController extends BaseController {
@@ -47,12 +47,12 @@ public class UserController extends BaseController {
 	 * @param modelMap
 	 * @return
 	 */
-	@RequestMapping(value = "/userManage", method = RequestMethod.GET)
-	public String userManage(MessageModel model, ModelMap modelMap) {
+	@RequestMapping(value = "/index", method = RequestMethod.GET)
+	public MessageModel userManage(MessageModel model, ModelMap modelMap) {
 		User user = this.getUser();
 		String orgId = user.getOrgId();
 		String userLevel = user.getUserLevel();
-		List<OrgInfo> orgInfoList = new ArrayList<OrgInfo>();
+		List<OrgInfo> orgInfoList = new ArrayList<>();
 		try {
 			OrgInfo orgInfo = orgInfoService.selectOneOrgInfo(orgId);
 			if("S".equals(userLevel)){
@@ -97,7 +97,7 @@ public class UserController extends BaseController {
 			e2.printStackTrace();
 		}
 		
-		return "/system/auth/userManage/userManage";
+		return model;
 	}
 
 	/**
@@ -110,16 +110,15 @@ public class UserController extends BaseController {
 	 * @param userSts
 	 * @return
 	 */
-	@RequestMapping(value = "/userSelect", method = RequestMethod.POST)
-	@ResponseBody
-	public Object userSelect(MessageModel model, 
-			@RequestParam(required = false, defaultValue = "10") String rows,
-			@RequestParam(required = false, defaultValue = "1") String page,
+	@RequestMapping(value = "/list", method = RequestMethod.POST)
+	public MessageModel userSelect(MessageModel model,
+			@RequestParam(required = false, value = "pageSize", defaultValue = "10") String rows,
+			@RequestParam(required = false, value = "pageNum", defaultValue = "1") String page,
 			@RequestParam(required = false, value = "orgId") String orgId,
 			@RequestParam(required = false, value = "userNo") String userNo,
 			@RequestParam(required = false, value = "userName") String userName,
 			@RequestParam(required = false, value = "userSts") String userSts) {
-		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> result = model.getData();
 		PageInfo<User> userAndOrgInfoList = new PageInfo<User>();
 		User user = this.getUser();
 		String userOrgId = user.getOrgId();
@@ -128,13 +127,13 @@ public class UserController extends BaseController {
 			SysLogger.info(super.getLogUserAndIpAddr()+"UserController->userSelect:", "orgId:"+orgId+
 					"  userNo:"+userNo+"  userName:"+userName+"  userSts:"+userSts);
 			Map<String, String> userMap = new HashMap<String, String>();
-			if (userNo.trim() != null && !"".equals(userNo.trim())) {
+			if (!StringUtil.isEmpty(userNo)) {
 				userMap.put("userNo", userNo.trim());
 			}
-			if (userName.trim() != null && !"".equals(userName.trim())) {
+			if (!StringUtil.isEmpty(userName)) {
 				userMap.put("userName", userName.trim());
 			}
-			if (userSts.trim() != null && !"".equals(userSts.trim())) {
+			if (!StringUtil.isEmpty(userSts)) {
 				userMap.put("userSts", userSts.trim());
 			}
 			if("S".equals(userUserLevel)){
@@ -148,7 +147,7 @@ public class UserController extends BaseController {
 				String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
 				if("1".equals(orgManageModel)){
 					//管理模式为下级管理 
-					if (orgId.trim() != null && !"".equals(orgId.trim())) {
+					if (!StringUtil.isEmpty(orgId)) {
 						userMap.put("orgId", orgId.trim());
 						if(orgId.trim().equals(userOrgId)){
 							//如果用户选择本级机构条件，则查询本级普通用户
@@ -171,7 +170,7 @@ public class UserController extends BaseController {
 				}
 				if("2".equals(orgManageModel)){
 					//管理模式为总行统一管理并且为总行管理员
-					if(user.getpOrgId()==null||"".equals(user.getpOrgId())){
+					if(StringUtil.isEmpty(user.getpOrgId())){
 							userMap.put("orgId", orgId.trim());
 							//如果用户选择机构，则查询本级普通用户和管理员
 							userAndOrgInfoList = userInfoService.selectUserAndOrgInfo(Integer.parseInt(page),
@@ -199,7 +198,37 @@ public class UserController extends BaseController {
         	model.setStatusInfo("查询用户列表错误");
 			e2.printStackTrace();
 		}
-		return result;
+		return model;
+	}
+
+	@RequestMapping(value = "/selectOne", method = RequestMethod.POST)
+	public MessageModel selectOne(MessageModel model,
+			@RequestParam(value = "userId", required = true) String userId) {
+		model = super.getQueryFailureNotice(model);
+		try {
+			User user = userInfoService.selectOneUser(userId);
+			if(user == null){
+				return model;
+			}
+			user.setUserPwd(super.instance.decryptToString(user.getUserPwd()));
+			model.getData().put("userInfo", user);
+			model = super.getQuerySuccessNotice(model);
+		} catch (DBException e2) {
+			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->userSelect:", e2);
+			e2.printStackTrace();
+			model = super.getDataBaseErrorNotice(model);
+			model.setStatusInfo("查询用户信息错误");
+		} catch (SysException e2) {
+			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->userSelect:", e2);
+			model = super.getSystemErrorNotice(model);
+			model.setStatusInfo("查询用户信息错误");
+			e2.printStackTrace();
+		} catch (Exception e) {
+			model = super.getSystemErrorNotice(model);
+			model.setStatusInfo("查询用户信息错误");
+			e.printStackTrace();
+		}
+		return model;
 	}
 
 	/**
@@ -207,9 +236,8 @@ public class UserController extends BaseController {
 	 * @param user
 	 * @return
 	 */
-	@RequestMapping(value = "/addUser", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel addUser(MessageModel model, User user) throws SysException{
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
+	public MessageModel addUser(MessageModel model, User user) {
 		// 添加用户
 		model = super.getAddFailureNotice(model);
 		User loginUser = this.getUser();
@@ -281,13 +309,13 @@ public class UserController extends BaseController {
 	 * @param user
 	 * @return
 	 */
-	@RequestMapping(value = "/updateUser", method = RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value = "/edit", method = RequestMethod.POST)
 	public MessageModel updateUser(MessageModel model, User user){
 		
 		model = super.getUpdateFailureNotice(model);
 		try {
 			//更新用户表
+			user.setUserPwd(super.instance.encryptToString(user.getUserPwd()));
 			int result = userInfoService.updateUser(user);
 			if(result == 0) {
 				return model;
@@ -311,6 +339,11 @@ public class UserController extends BaseController {
 			model = super.getSystemErrorNotice(model);
         	model.setStatusInfo("更新用户信息错误");
 			e2.printStackTrace();
+		} catch (Exception e) {
+			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->updateUser:", e);
+			model = super.getSystemErrorNotice(model);
+			model.setStatusInfo("更新用户信息错误");
+			e.printStackTrace();
 		}
 		return model;
 	}
@@ -323,7 +356,6 @@ public class UserController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/resetPwd", method = RequestMethod.POST)
-	@ResponseBody
 	public MessageModel resetPwd(MessageModel model, @RequestParam("userId") String userId,
 			@RequestParam("newPwd") String newPwd){
 		
@@ -374,9 +406,8 @@ public class UserController extends BaseController {
 	 * 删除用户信息
 	 * @return
 	 */
-	@RequestMapping(value = "/deleteUser", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel deleteUser(MessageModel model, 
+	@RequestMapping(value = "/delete", method = RequestMethod.POST)
+	public MessageModel deleteUser(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
 		
 		model = super.getDeleteFailureNotice(model);
@@ -417,13 +448,12 @@ public class UserController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping("/roleUserSelect")
-	@ResponseBody
-	public Object roleUserSelect(MessageModel model, 
+	public MessageModel roleUserSelect(MessageModel model,
 			@RequestParam(required = false, defaultValue = "10") String rows,
 			@RequestParam(required = false, defaultValue = "1") String page,
 			@RequestParam(required = false, value = "userId") String userId) {
 		
-		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> result = model.getData();
 		try {
 			Map<String, String> roleMap = new HashMap<String, String>();
 			roleMap.put("roleSts", "1");
@@ -461,7 +491,7 @@ public class UserController extends BaseController {
         	model.setStatusInfo("用户分配角色查询错误");
 			e2.printStackTrace();
 		}
-		return result;
+		return model;
 	}
 	
 	/**
@@ -472,8 +502,7 @@ public class UserController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/saveRole", method = RequestMethod.POST)
-	@ResponseBody
-	public Object saveRole(MessageModel model,  
+	public MessageModel saveRole(MessageModel model,
 			@RequestParam(required = false, value = "ids") String ids,
 			@RequestParam(required = false, value = "userId") String userId,
 			@RequestParam(required = false, value = "userNo") String userNo) {
@@ -521,9 +550,7 @@ public class UserController extends BaseController {
 		return model;
 	}
 	@RequestMapping(value = "/ifgoAdd", method = RequestMethod.POST)
-	@ResponseBody
 	public MessageModel ifgoAdd(MessageModel model) {
-		
 		model = super.getUpdateFailureNotice(model);
 		String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
 		if("2".equals(orgManageModel)){
@@ -536,70 +563,71 @@ public class UserController extends BaseController {
 	}
 	/**
 	 * 跳转到新增用户页面
-	 * @param modelMap
 	 * @return
 	 */
 	@RequestMapping(value = "/goAdd", method = RequestMethod.GET)
-	public String goAdd(MessageModel model, ModelMap modelMap) {
+	public MessageModel goAdd(MessageModel model) {
+		model = super.getQueryFailureNotice(model);
 		List<OrgInfo> orgInfoList = new ArrayList<OrgInfo>();
 		if("S".equals(this.getUser().getUserLevel())){
 			//如果为超级管理员，则跳转到超级管理员新增页面
-			return "/system/auth/userManage/adminManageAdd";
+			model = super.getQuerySuccessNotice(model);
+			return model;
 		}
+		Map<String, Object> data = model.getData();
 		String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
 		if("1".equals(orgManageModel)){
 			//管理模式为下级管理 
-			modelMap.put("flag", "1");
+			data.put("flag", "1");
 		}
 		if("2".equals(orgManageModel)){
 			//管理模式为总行统一管理
-			modelMap.put("flag", "2");
-			Map<String, String> orgMap = new HashMap<String, String>();
-			
-			if(super.getUser().getpOrgId()==null||"".equals(super.getUser().getpOrgId())){
+			data.put("flag", "2");
+			Map<String, String> orgMap = new HashMap<>();
+			if(!StringUtil.isEmpty(super.getUser().getpOrgId())){
 				orgMap.put("orgId", super.getUser().getOrgId());
 				try {
 					orgInfoList = orgInfoService.selectHeadSubOrgInfo(1, 1000, orgMap).getList();
-					modelMap.put("orgInfoList", orgInfoList);
+					data.put("orgInfoList", orgInfoList);
+					model = super.getQuerySuccessNotice(model);
 				} catch (DBException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (SysException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
 		}
-		return "/system/auth/userManage/userManageAdd";
+		return model;
 	}
 	
 	/**
 	 * 跳转到更新用户页面
 	 * @param model
-	 * @param modelMap
 	 * @param userId
 	 * @return
 	 */
 	@RequestMapping(value = "/goUpdate", method = RequestMethod.GET)
-	public String goUpdate(MessageModel model, ModelMap modelMap,
+	public MessageModel goUpdate(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
-		
+		model = super.getQueryFailureNotice(model);
+		Map<String, Object> data = model.getData();
 		User loginUser = this.getUser();
 		String loginOrgId = loginUser.getOrgId();
-		String loginUserLevel = loginUser.getUserLevel(); 
+		String loginUserLevel = loginUser.getUserLevel();
+		model = super.getQueryFailureNotice(model);
 		try {
 			User user = userInfoService.selectOneUser(userId);
-			modelMap.put("user", user);
+			data.put("user", user);
 			if("S".equals(loginUserLevel)){
 				//如果为超级管理员，则跳转到超级管理员修改页面
-				return "/system/auth/userManage/adminManageUpdate";
+				model = super.getQuerySuccessNotice(model);
+				return model;
 			}
 			List<OrgInfo> orgInfoList = new ArrayList<OrgInfo>();
 			String orgManageModel = super.getSystemParamCache("orgManageModel").toString();
 			if("1".equals(orgManageModel)){
 				//管理模式为下级管理 
-				modelMap.put("flag", "1");
+				data.put("flag", "1");
 				if("A".equals(user.getUserLevel())){
 					//如果为管理员,则获取所有下级机构
 					Map<String, String> orgMap = new HashMap<String, String>();
@@ -614,15 +642,15 @@ public class UserController extends BaseController {
 			}
 			if("2".equals(orgManageModel)){
 				//管理模式为总行统一管理
-				modelMap.put("flag", "2");
+				data.put("flag", "2");
 				Map<String, String> orgMap = new HashMap<String, String>();
 				if(super.getUser().getpOrgId()==null||"".equals(super.getUser().getpOrgId())){
 					orgMap.put("orgId", super.getUser().getOrgId());
 					orgInfoList = orgInfoService.selectHeadSubOrgInfo(1, 1000, orgMap).getList();
 				}
-				
 			}
-			modelMap.put("orgInfoList", orgInfoList);
+			data.put("orgInfoList", orgInfoList);
+			model = super.getQuerySuccessNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->goUpdate:", e2);
 			e2.printStackTrace();
@@ -634,40 +662,49 @@ public class UserController extends BaseController {
         	model.setStatusInfo("跳转到用户更新页面错误");
 			e2.printStackTrace();
 		}
-		return "/system/auth/userManage/userManageUpdate";
+		return model;
 	}
 	
 	/**
 	 * 跳转到重置密码页面
 	 * @param model
-	 * @param modelMap
 	 * @param userId
 	 * @return
 	 */
 	@RequestMapping(value = "/goResetPwd", method = RequestMethod.GET)
-	public String goResetPwd(MessageModel model, ModelMap modelMap,
+	public MessageModel goResetPwd(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
-		
-		modelMap.put("userId", userId);
-		return "/system/auth/userManage/resetPwd";
+		Map<String, Object> data = model.getData();
+		data.put("userId", userId);
+		return model;
 	}
 	
 	/**
 	 * 跳转到详细用户页面
 	 * @param model
-	 * @param modelMap
 	 * @param userId
 	 * @return
 	 */
 	@RequestMapping(value = "/doDetail", method = RequestMethod.GET)
-	public String doDetail(MessageModel model, ModelMap modelMap,
+	public MessageModel doDetail(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
-		
+
+		model = super.getQueryFailureNotice(model);
+		Map<String, Object> data = model.getData();
 		try {
 			User user = userInfoService.selectOneUser(userId);
-			modelMap.put("user", user);
+			if(user == null) {
+				model.setStatusInfo("查询用户出错");
+				return model;
+			}
+			data.put("user", user);
 			OrgInfo orgInfo = orgInfoService.selectOneOrgInfo(user.getOrgId());
-			modelMap.put("orgInfo", orgInfo);
+			if (orgInfo == null) {
+				model.setStatusInfo("查询用户机构出错");
+				return model;
+			}
+			data.put("orgInfo", orgInfo);
+			model = super.getQuerySuccessNotice(model);
 		}catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->doDetail:", e2);
 			e2.printStackTrace();
@@ -679,7 +716,7 @@ public class UserController extends BaseController {
         	model.setStatusInfo("跳转到用户详细信息页面错误");
 			e2.printStackTrace();
 		}
-		return "/system/auth/userManage/info";
+		return model;
 	}
 
 	/**
@@ -688,11 +725,13 @@ public class UserController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/changeUserLevel", method = RequestMethod.POST)
-	@ResponseBody
-	public Object changeUserLevel(MessageModel model,
+	public MessageModel changeUserLevel(MessageModel model,
 			@RequestParam(required = false, value = "userLevel") String userLevel){
+
 		String loginOrgId = this.getUser().getOrgId();
 		List<OrgInfo> orgInfoList = new ArrayList<OrgInfo>();
+		model = super.getQueryFailureNotice(model);
+		Map<String, Object> data = model.getData();
 		try {
 			if("A".equals(userLevel)){
 				//如果为管理员,则获取所有下级机构
@@ -705,6 +744,7 @@ public class UserController extends BaseController {
 				OrgInfo orgInfo = orgInfoService.selectOneOrgInfo(loginOrgId);
 				orgInfoList.add(orgInfo);
 			}
+			data.put("orgInfoList", orgInfoList);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->changeUserLevel:", e2);
 			e2.printStackTrace();
@@ -716,7 +756,7 @@ public class UserController extends BaseController {
         	model.setStatusInfo("修改用户级别错误");
 			e2.printStackTrace();
 		}
-		return orgInfoList;
+		return model;
 	}
 	
 	/**
@@ -725,9 +765,8 @@ public class UserController extends BaseController {
 	 * @param userId
 	 * @return
 	 */
-	@RequestMapping(value = "/doStart", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel doStart(MessageModel model, 
+	@RequestMapping(value = "/start", method = RequestMethod.POST)
+	public MessageModel start(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
 		
 		model = super.getDeleteFailureNotice(model);
@@ -776,9 +815,8 @@ public class UserController extends BaseController {
 	 * @param userId
 	 * @return
 	 */
-	@RequestMapping(value = "/doEnd", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel doEnd(MessageModel model, 
+	@RequestMapping(value = "/stop", method = RequestMethod.POST)
+	public MessageModel stop(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
 		
 		model = super.getDeleteFailureNotice(model);
@@ -826,12 +864,11 @@ public class UserController extends BaseController {
 	 * @param userId
 	 * @return
 	 */
-	@RequestMapping(value = "/doUnLock", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel doUnLock(MessageModel model, 
+	@RequestMapping(value = "/unLock", method = RequestMethod.POST)
+	public MessageModel unLock(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
 		
-		model = super.getDeleteFailureNotice(model);
+		model = super.getUpdateFailureNotice(model);
 		try {
 			//将用户锁定状态设置为0：正常
 			User user = new User();
@@ -856,7 +893,7 @@ public class UserController extends BaseController {
 			
 			SysLogger.info(super.getLogUserAndIpAddr()+"UserController->doUnLock:", "用户ID："+userId);
 			
-			model = super.getDeleteSuccessNotice(model);
+			model = super.getUpdateSuccessNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->doUnLock:", e2);
 			e2.printStackTrace();
@@ -877,12 +914,11 @@ public class UserController extends BaseController {
 	 * @param userId
 	 * @return
 	 */
-	@RequestMapping(value = "/doLock", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel doLock(MessageModel model, 
+	@RequestMapping(value = "/lock", method = RequestMethod.POST)
+	public MessageModel lock(MessageModel model,
 			@RequestParam(required = false, value = "userId") String userId) {
 		
-		model = super.getDeleteFailureNotice(model);
+		model = super.getUpdateFailureNotice(model);
 		try {
 			//将用户锁定状态设置为1：锁定
 			User user = new User();
@@ -907,7 +943,7 @@ public class UserController extends BaseController {
 			
 			SysLogger.info(super.getLogUserAndIpAddr()+"UserController->doLock:", "用户ID："+userId);
 			
-			model = super.getDeleteSuccessNotice(model);
+			model = super.getUpdateFailureNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"UserController->doLock:", e2);
 			e2.printStackTrace();

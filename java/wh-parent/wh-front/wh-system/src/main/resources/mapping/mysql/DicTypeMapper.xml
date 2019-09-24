@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zrd.wh.front.system.mapper.IDicTypeMapper">
+	<resultMap id="DicTypeResultMap" type="com.zrd.wh.core.front.entity.system.DicType">
+		<id column="DICCODE" property="dicCode" jdbcType="VARCHAR" />
+		<result column="DICNAME" property="dicName" jdbcType="VARCHAR"/>
+	</resultMap>
+	<sql id="DicType_Column_List">
+		DICCODE,DICNAME
+	</sql>
+	
+	<!-- 通过条件查询机构记录 -->
+	<select id="selectDicType" parameterType="java.util.Map" resultMap="DicTypeResultMap">
+		SELECT  
+			DICCODE, DICNAME
+		FROM CRS_DD_DICTYPE
+		<where>
+			<if test="dicCode != null">
+				DICCODE = #{dicCode}
+			</if>
+			<if test="dicName != null">
+				AND DICNAME LIKE '%${dicName}%'
+			</if>
+		</where>
+	</select>
+
+	<!-- 查询一条机构记录 -->
+	<select id="selectDicTypeInfo" resultMap="DicTypeResultMap"
+		parameterType="java.lang.String">
+		SELECT  
+			DICCODE, DICNAME
+		FROM
+			CRS_DD_DICTYPE
+		WHERE
+			DICCODE = #{dicCode}
+	</select>
+
+	<!-- 分页查询 -->
+	<select id="selectDicTypeAll" parameterType="java.util.Map" resultMap="DicTypeResultMap">
+		SELECT
+			DICCODE, DICNAME
+		FROM CRS_DD_DICTYPE
+		<where>
+			<if test="dicCode != null">
+				DICCODE = #{dicCode}
+			</if>
+			<if test="dicName != null">
+				AND DICNAME LIKE '%${dicName}%'
+			</if>
+		</where>
+	</select>
+	  
+	<!-- 新增机构信息 -->
+	<insert id="insert" parameterType="com.zrd.wh.core.front.entity.system.DicType">
+		INSERT INTO CRS_DD_DICTYPE (DICCODE,DICNAME)
+		VALUES (#{dicCode,jdbcType=VARCHAR},#{dicName,jdbcType=VARCHAR})
+	</insert>
+
+	<!-- 删除信息 -->
+	<delete id="delete" parameterType="java.lang.String">
+		DELETE FROM CRS_DD_DICTYPE WHERE DICCODE=#{dicCode}
+	</delete>
+	
+	<!-- 修改信息 -->
+	<update id="updateDicTypeInfo" parameterType="com.zrd.wh.core.front.entity.system.DicType">
+		UPDATE CRS_DD_DICTYPE
+		<set>
+			<if test="dicName != null">
+				DICNAME = #{dicName,jdbcType=VARCHAR}
+			</if>
+		</set>
+		WHERE
+			DICCODE=#{dicCode}
+	</update>
+</mapper>

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.github.pagehelper.PageInfo;
-import com.zrd.wh.core.base.constant.Constant;
 import com.zrd.wh.core.base.constant.MessageModel;
 import com.zrd.wh.core.base.exception.DBException;
 import com.zrd.wh.core.base.exception.SysException;
@@ -23,15 +22,14 @@ import com.zrd.wh.core.front.service.auth.IRoleService;
 import com.zrd.wh.front.web.config.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @Scope("prototype")
 @RequestMapping("/role")
 public class RoleController extends BaseController {
-	 
+
 	private static final long serialVersionUID = -5078927180757757293L;
 
 	@Autowired
@@ -57,14 +55,13 @@ public class RoleController extends BaseController {
 	 * @param roleSts
 	 * @return
 	 */
-	@RequestMapping(value = "/roleSelect", method = RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value = "/list", method = RequestMethod.POST)
 	public Object roleSelect(MessageModel model,
 			 @RequestParam(required = false, defaultValue = "10") String rows,
 			 @RequestParam(required = false, defaultValue = "1") String page,
 			 @RequestParam(required = false, value = "roleName") String roleName,
 			 @RequestParam(required = false, value = "roleSts") String roleSts) {
-		
+		model = super.getQueryFailureNotice(model);
 		Map<String, Object> result = new HashMap<>();
 		try {
 			SysLogger.info(super.getLogUserAndIpAddr()+"RoleController->roleSelect:", "roleName:"+roleName+"  roleSts:"+roleSts);
@@ -79,13 +76,13 @@ public class RoleController extends BaseController {
 			//分页查询
 			PageInfo<Role> roleInfoList = roleService.selectRoleByPage(Integer.parseInt(page),
 					Integer.parseInt(rows),  roleMap);
-			
-			result.put("rows", roleInfoList.getList());
-			result.put("total", roleInfoList.getTotal());
+			Map<String, Object> data = model.getData();
+			data.put("rows", roleInfoList.getList());
+			data.put("total", roleInfoList.getTotal());
 			SysLogger.info(super.getLogUserAndIpAddr()+"RoleController->roleSelect:", 
 					"rows:"+roleInfoList.getList().toString()+
 					",  total:"+roleInfoList.getTotal());
-			
+			model = super.getQuerySuccessNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"RoleController->roleSelect:", e2);
 			e2.printStackTrace();
@@ -105,11 +102,9 @@ public class RoleController extends BaseController {
 	 * @param role
 	 * @return
 	 */
-	@RequestMapping(value = "/addRole", method = RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	public MessageModel addRole(MessageModel model, Role role) {
 		model = super.getAddFailureNotice(model);
-		
 		try {
 			// 添加角色
 			String ids = UUIDGenerator.generate();
@@ -149,8 +144,8 @@ public class RoleController extends BaseController {
 	 * @param role
 	 * @return
 	 */
-	@RequestMapping(value = "/updateRole", method = RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value = "/edit", method = RequestMethod.POST)
+	
 	public MessageModel updateRole(MessageModel model, Role role) {
 		
 		model = super.getUpdateFailureNotice(model);
@@ -188,8 +183,8 @@ public class RoleController extends BaseController {
 	 * 删除角色
 	 * @return
 	 */
-	@RequestMapping(value = "/deleteRole", method = RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value = "/delete", method = RequestMethod.POST)
+	
 	public MessageModel deleteRole(MessageModel model, 
 			@RequestParam(required = false, value = "roleId") String roleId) {
 		
@@ -234,13 +229,14 @@ public class RoleController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping("/roleResourceSelect")
-	@ResponseBody
-	public Object roleResourceSelect(MessageModel model, 
+	
+	public MessageModel roleResourceSelect(MessageModel model,
 			@RequestParam(required = false, defaultValue = "10") String rows,
 			@RequestParam(required = false, defaultValue = "1") String page,
 			@RequestParam(required = false, value = "roleId") String roleId) {
-		
-		Map<String, Object> result = new HashMap<>();
+
+		model = super.getQueryFailureNotice(model);
+		Map<String, Object> result = model.getData();
 		
 		try {
 			Map<String, String> resourceMap = new HashMap<String, String>();
@@ -266,7 +262,8 @@ public class RoleController extends BaseController {
 			SysLogger.info(super.getLogUserAndIpAddr()+"RoleController->roleResourceSelect:", 
 					"rows:"+resourceList.toString()+
 					",  total:"+resourceInfoList.getTotal());
-			
+
+			model = super.getQuerySuccessNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"RoleController->roleResourceSelect:", e2);
 			e2.printStackTrace();
@@ -279,7 +276,7 @@ public class RoleController extends BaseController {
 			e2.printStackTrace();
 		}
 		
-		return result;
+		return model;
 	}
 	
 
@@ -290,8 +287,7 @@ public class RoleController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/updateRoleResources", method = RequestMethod.POST)
-	@ResponseBody
-	public Object updateRoleResources(MessageModel model, 
+	public MessageModel updateRoleResources(MessageModel model,
 			@RequestParam(required = false, value = "roleId") String roleId,
 			@RequestParam(required = false, value = "resourcesIds") String resourcesIds) {
 		model = super.getUpdateFailureNotice(model);
@@ -368,8 +364,8 @@ public class RoleController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/goAdd", method = RequestMethod.GET)
-	public String goAdd(MessageModel model) {
-		return "/system/auth/roleManage/roleManageAdd";
+	public MessageModel goAdd(MessageModel model) {
+		return model;
 	}
 	
 	/**
@@ -377,11 +373,15 @@ public class RoleController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/goUpdate", method = RequestMethod.GET)
-	public String goUpdate(MessageModel model, 
-			ModelMap modelMap,@RequestParam(required = false, value = "roleId") String roleId) {
+	public MessageModel goUpdate(MessageModel model,@RequestParam(required = false, value = "roleId") String roleId) {
+		model = super.getQueryFailureNotice(model);
 		try {
 			Role role = roleService.selectOneRole(roleId);
-			modelMap.put("role", role);
+			if(role == null){
+				return model;
+			}
+			model.getData().put("role", role);
+			model = super.getQuerySuccessNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"RoleController->goUpdate:", e2);
 			e2.printStackTrace();
@@ -393,12 +393,11 @@ public class RoleController extends BaseController {
         	model.setStatusInfo("跳转到角色修改页面错误");
 			e2.printStackTrace();
 		}
-		return "/system/auth/roleManage/roleManageUpdate";
+		return model;
 	}
 	
 	
 	@RequestMapping(value = "/resourcesZTreeToRole", method = RequestMethod.POST)
-	@ResponseBody
 	public MessageModel resourcesZTreeToRole(MessageModel model, @RequestParam(required = false, value = "roleId") String roleId) {
 		model = super.getQueryFailureNotice(model);
 		
@@ -456,7 +455,6 @@ public class RoleController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/changeStatus", method = RequestMethod.POST)
-	@ResponseBody
 	public MessageModel changeStatus(MessageModel model, Role o) {
 		
 		model = super.getUpdateFailureNotice(model);

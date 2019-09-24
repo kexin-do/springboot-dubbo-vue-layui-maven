@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.zrd.wh.core.base.constant.Constant;
 import com.zrd.wh.core.base.constant.MessageModel;
 import com.zrd.wh.core.base.exception.DBException;
 import com.zrd.wh.core.base.exception.SysException;
@@ -16,11 +15,10 @@ import com.zrd.wh.core.front.service.auth.IResourceService;
 import com.zrd.wh.front.web.config.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @Scope("prototype")
 @RequestMapping("/resource")
 public class ResourceController extends BaseController {
@@ -32,7 +30,7 @@ public class ResourceController extends BaseController {
 	 * 跳转权限管理页面
 	 * @return
 	 */
-	@RequestMapping(value = "/resourceManage", method = RequestMethod.GET)
+	@RequestMapping(value = "/index", method = RequestMethod.GET)
 	public String selectPermission(MessageModel model){
 		return "/system/auth/permissionManage/permissionManage";
 	}
@@ -42,9 +40,7 @@ public class ResourceController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(value = "/resourcesZTree", method = RequestMethod.POST)
-	@ResponseBody
 	public MessageModel resourcesZTree(MessageModel model){
-		
 		model = super.getQueryFailureNotice(model);
 		try {
 			Map<String, Object> params = new HashMap<>();
@@ -76,8 +72,7 @@ public class ResourceController extends BaseController {
 	 * @param resource
 	 * @return
 	 */
-	@RequestMapping(value = "/addResource", method = RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	public MessageModel addResource(MessageModel model, Resource resource) {
 		model = super.getAddFailureNotice(model);
 		try {
@@ -124,8 +119,7 @@ public class ResourceController extends BaseController {
 	 * @param resource
 	 * @return
 	 */
-	@RequestMapping(value = "/updateResource", method = RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value = "/edit", method = RequestMethod.POST)
 	public MessageModel updateResource(MessageModel model, Resource resource) {
 		model = super.getUpdateFailureNotice(model);
 		try {
@@ -162,11 +156,9 @@ public class ResourceController extends BaseController {
 	 * @param resId
 	 * @return
 	 */
-	@RequestMapping(value = "/deleteResource", method = RequestMethod.POST)
-	@ResponseBody
-	public MessageModel deleteResource(MessageModel model, 
+	@RequestMapping(value = "/delete", method = RequestMethod.POST)
+	public MessageModel deleteResource(MessageModel model,
 			@RequestParam(required = false, value = "resId") String resId) {
-		
 		model = super.getDeleteFailureNotice(model);
 		try {
 			//判断该菜单是否是末节点
@@ -210,26 +202,29 @@ public class ResourceController extends BaseController {
 	
 	/**
 	 * 跳转到新增权限信息页面
-	 * @param modelMap
 	 * @param type 添加的类型：1：同级，2：下级
 	 * @return
 	 */
 	@RequestMapping(value = "/goAdd", method = RequestMethod.GET)
-	public String goAdd(MessageModel model, ModelMap modelMap,
+	public MessageModel goAdd(MessageModel model,
 			@RequestParam(required = false, value = "resId") String resId,
 			@RequestParam(required = false, value = "type") String type) {
+		model = super.getQueryFailureNotice(model);
 		try {
+			Map<String, Object> data = model.getData();
 			Resource resource = resourceService.selectOneResource(resId);
 			if("2".equals(type)) {
-				modelMap.put("resId", resource.getResId());
-				modelMap.put("resName", resource.getResName());
+				data.put("resId", resource.getResId());
+				data.put("resName", resource.getResName());
 			}else {
 				Resource pResource = resourceService.selectOneResource(resource.getpResId());
 				if(pResource != null) {
-					modelMap.put("resId", pResource.getResId());
-					modelMap.put("resName", pResource.getResName());
+					data.put("resId", pResource.getResId());
+					data.put("resName", pResource.getResName());
 				}
 			}
+
+			model = super.getQuerySuccessNotice(model);
 		}catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"ResourceController->goAdd:", e2);
 			e2.printStackTrace();
@@ -241,15 +236,17 @@ public class ResourceController extends BaseController {
         	model.setStatusInfo("跳转到新增资源页面错误");
 			e2.printStackTrace();
 		}
-		return "/system/auth/permissionManage/permissionManageAdd";
+		return model;
 	}
 	
 	@RequestMapping(value = "/goUpdate", method = RequestMethod.GET)
-	public String goUpdate(MessageModel model, ModelMap modelMap,
+	public MessageModel goUpdate(MessageModel model,
 			@RequestParam(required = false, value = "resId") String resId) {
+		model = super.getQueryFailureNotice(model);
 		try {
 			Resource resource = resourceService.selectOneResource(resId);
-			modelMap.put("resource", resource);
+			model.getData().put("resource", resource);
+			model = super.getQuerySuccessNotice(model);
 		} catch (DBException e2) {
 			SysLogger.error(super.getLogUserAndIpAddr()+"ResourceController->goUpdate:", e2);
 			e2.printStackTrace();
@@ -261,7 +258,7 @@ public class ResourceController extends BaseController {
         	model.setStatusInfo("跳转页面错误");
 			e2.printStackTrace();
 		}
-		return "/system/auth/permissionManage/permissionManageUpdate";
+		return model;
 	}
 	
 }

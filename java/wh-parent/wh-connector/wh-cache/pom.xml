@@ -11,7 +11,7 @@
     <groupId>com.zrd.wh.connector</groupId>
     <artifactId>cache</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>cache</name>
+    <name>connector-cache</name>
     <description>缓存接口模块</description>
 
     <properties>

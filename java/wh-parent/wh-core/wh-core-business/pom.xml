@@ -12,7 +12,7 @@
     <groupId>com.zrd.wh.core</groupId>
     <artifactId>business</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>business</name>
+    <name>core-business</name>
     <description>业务系统模块实体类及其接口</description>
 
     <properties>
@@ -21,14 +21,14 @@
 
     <dependencies>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

@@ -2,7 +2,9 @@ package com.zrd.wh.core.front.entity.auth;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.zrd.wh.core.base.entity.BaseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * 系统用户信息表
@@ -38,6 +40,8 @@ public class User extends BaseEntity {
 	/**
 	 * 上次修改密码日期
 	 */
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date userPwdDay;
 
 	/**
@@ -56,14 +60,14 @@ public class User extends BaseEntity {
 	 * 用户状态：
 	 * 1=正常，
 	 * 2=停用，
-	 * 3=注销，
-	 * 4=锁定
 	 */
 	private String userSts;
 
 	/**
 	 * 锁定变更日期
 	 */
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date lstTime;
 
 	/**
@@ -155,6 +159,8 @@ public class User extends BaseEntity {
 	/**
 	 * 创建时间
 	 */
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date createTime;
 	
 	/**
@@ -165,6 +171,8 @@ public class User extends BaseEntity {
 	/**
 	 * 启停变更时间
 	 */
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date startTime;
 	
 	/**
@@ -176,6 +184,8 @@ public class User extends BaseEntity {
 	/**
 	 * 最后登录时间
 	 */
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date lstLoginDate;
 	
 	public Date getLstLoginDate() {

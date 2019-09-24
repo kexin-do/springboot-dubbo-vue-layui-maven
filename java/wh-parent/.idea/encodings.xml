@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-business" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-business" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-bussiness" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-connector" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-connector/wh-cache" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-core" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-core/wh-core-base" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-core/wh-core-business" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-core/wh-core-front" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-front" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-front/wh-auth" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-front/wh-system" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-front/wh-web" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wh-web" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>
