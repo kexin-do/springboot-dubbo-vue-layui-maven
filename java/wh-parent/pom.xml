@@ -25,7 +25,7 @@
 
         <validation-api.version>2.0.1.Final</validation-api.version>
 
-        <mysql.connector.version>5.1.46</mysql.connector.version>
+        <mysql.connector.version>8.0.28</mysql.connector.version>
         <oracle.connector.version>11.2.0.1.0</oracle.connector.version>
 
         <spring.verion>5.0.6.RELEASE</spring.verion>
